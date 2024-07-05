@@ -18,7 +18,7 @@
 				<DataGridComboBoxColumn Header="Subdivision" ItemsSource="{Binding DataContext.Subdivision, Source={x:Reference ProxyElement}}" SelectedItemBinding="{Binding Subdivision}"/>
 				<DataGridComboBoxColumn Header="Position" ItemsSource="{Binding DataContext.EmployeePosition, Source={x:Reference ProxyElement}}" SelectedItemBinding="{Binding Position}"/>
 				<DataGridComboBoxColumn Header="Active" ItemsSource="{Binding DataContext.ActiveStatus, Source={x:Reference ProxyElement}}" SelectedItemBinding="{Binding ActiveStatus}"/>
-				<DataGridTextColumn Header="People Partner ID" Binding="{Binding PeoplePartnerId}"/>
+				<DataGridComboBoxColumn Header="HR Partner" ItemsSource="{Binding DataContext.HRPeople, Source={x:Reference ProxyElement}}" SelectedItemBinding="{Binding PeoplePartner}"/>
 				<DataGridTextColumn IsReadOnly="True" Header="Availible Days Off" Binding="{Binding AvailibleDaysOff}"/>
 			</DataGrid.Columns>
 
@@ -45,8 +45,6 @@
 					</DockPanel>
 				</DataTemplate>
 			</DataGrid.RowDetailsTemplate>
-
-
 		</DataGrid>
 	</Grid>
 </UserControl>

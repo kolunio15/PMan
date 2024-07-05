@@ -37,8 +37,9 @@ public partial class EmployeesView : UserControl
 
 		return long.Parse(e[start..end]);
 	}
-	public class Row(EmployeesView view)
+	public class Row
 	{
+		EmployeesView view;
 		public long Id { get; }
 		string fullName;
 		public string FullName {
@@ -88,15 +89,18 @@ public partial class EmployeesView : UserControl
 				}
 			}
 		}
-		string peoplePartnerId;
-		public string PeoplePartnerId {
-			get => peoplePartnerId;
+		string peoplePartner;
+		public string PeoplePartner {
+			get => peoplePartner;
 			set
 			{
 				if (view.context.Position is PMan.EmployeePosition.HRManager or PMan.EmployeePosition.Administrator)
 				{
-					peoplePartnerId = value;
-					UpdateDatabase();
+					if (SelectedEmployeeStringToId(PeoplePartner) is long id && id != this.Id)
+					{
+						peoplePartner = value;
+						UpdateDatabase();
+					}
 				}
 			}
 		}
@@ -110,21 +114,22 @@ public partial class EmployeesView : UserControl
 				(Subdivision)Array.IndexOf(EmployeesView.Subdivision, subdivision),
 				(EmployeePosition)Array.IndexOf(EmployeesView.EmployeePosition, Position),
 				(ActiveStatus)Array.IndexOf(EmployeesView.ActiveStatus, ActiveStatus),
-				SelectedEmployeeStringToId(PeoplePartnerId),
+				SelectedEmployeeStringToId(PeoplePartner),
 				AvailibleDaysOff,
 				PhotoPath == view.defaultPhotoPath ? null : PhotoPath
 			);
 			view.database.UpdateEmployee(e);
 		}
 
-		internal Row(Employee e, EmployeesView view) : this(view)
+		internal Row(Employee e, EmployeesView view)
 		{
+			this.view = view;
 			Id = e.Id;
 			fullName = e.FullName;
 			subdivision = EmployeesView.Subdivision[(int)e.Subdivision];
 			position = EmployeesView.EmployeePosition[(int)e.Position];
 			activeStatus = EmployeesView.ActiveStatus[(int)e.ActiveStatus];
-			peoplePartnerId = SelectedEmployeeToString(
+			peoplePartner = SelectedEmployeeToString(
 				e.PeoplePartnerId == null ? null : view.database.GetEmployee(e.PeoplePartnerId.Value));
 			AvailibleDaysOff = e.AvailibleDaysOff;
 			PhotoPath = e.PhotoPath ?? view.defaultPhotoPath;
@@ -137,6 +142,7 @@ public partial class EmployeesView : UserControl
 		public string[] Subdivision { get; }
 		public string[] ActiveStatus { get; }
 		public string[] EmployeePosition { get; }
+		public string[] HRPeople { get; }
         public Row[] Employees { get; }
 
 		internal Context(bool readOnly, List<Employee> employees, EmployeesView view)
@@ -145,6 +151,9 @@ public partial class EmployeesView : UserControl
             Subdivision = EmployeesView.Subdivision;
 			ActiveStatus = EmployeesView.ActiveStatus;
 			EmployeePosition = EmployeesView.EmployeePosition;
+			HRPeople = [.. employees
+				.Where(e => e.Position is PMan.EmployeePosition.HRManager)
+				.Select(SelectedEmployeeToString), "None"];
 			Employees = [..employees.Select(e => new Row(e, view))];
 		}
 	}
