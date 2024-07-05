@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Data.SQLite;
 using System.IO;
-using System.Windows.Ink;
 
 namespace PMan;
 
@@ -117,13 +116,74 @@ class Database : IDisposable
 	}
 
 
-	string? FullNameFixed(string fullName)
+	internal static string? ValidFullName(string fullName)
 	{
 		string[] lines = fullName.Split(Environment.NewLine);
 		if (lines.Length == 0) return null;
 		fullName = lines[0].Trim();
 		if (fullName.Length == 0) return null;
 		return fullName;
+	}
+
+
+	internal bool AddEmployee(
+		string fullName, 
+		Subdivision subdivision, 
+		EmployeePosition position, 
+		ActiveStatus active, 
+		long? peoplePartnerId
+	) 
+	{
+		using SQLiteTransaction transaction = connection.BeginTransaction();
+		using SQLiteCommand cmd = new(connection);
+
+		if (ValidFullName(fullName) is string fn)
+		{
+			fullName = fn;
+		}
+		else
+		{
+			return false;
+		}
+
+		cmd.CommandText =
+		"""
+			INSERT INTO employees(
+				full_name,
+				subdivision,
+				position,
+				active_status,
+				people_partner,
+				availible_days_off,
+				photo_path
+			) VALUES (
+				@fullName, 
+				@subdivision, 
+				@position, 
+				@activeStatus, 
+				@peoplePartnerId, 
+				@initialDaysOff, 
+				NULL
+			);
+		""";
+		cmd.Parameters.AddWithValue("@fullName", fullName);
+		cmd.Parameters.AddWithValue("@subdivision", (long)subdivision);
+		cmd.Parameters.AddWithValue("@position", (long)position);
+		cmd.Parameters.AddWithValue("@activeStatus", (long)active);
+		cmd.Parameters.AddWithValue("@peoplePartnerId", peoplePartnerId);
+		cmd.Parameters.AddWithValue("@initialDaysOff", (long)initialDaysOff);
+
+		try
+		{
+			cmd.ExecuteNonQuery();
+		}
+		catch (Exception e)
+		{
+			Console.WriteLine(e);
+			return false;
+		}
+		transaction.Commit();
+		return true;
 	}
 
 	bool AddEmployeeInternal(
@@ -138,7 +198,7 @@ class Database : IDisposable
 		using SQLiteTransaction transaction = connection.BeginTransaction();
 		using SQLiteCommand cmd = new(connection);
 
-		if (FullNameFixed(fullName) is string fn)
+		if (ValidFullName(fullName) is string fn)
 		{
 			fullName = fn;
 		}
@@ -194,7 +254,7 @@ class Database : IDisposable
 		using SQLiteCommand cmd = new(connection);
 
 		string fullName;
-		if (FullNameFixed(e.FullName) is string fn)
+		if (ValidFullName(e.FullName) is string fn)
 		{
 			fullName = fn;
 		}

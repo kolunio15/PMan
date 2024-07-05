@@ -8,17 +8,27 @@
              d:DesignHeight="450" d:DesignWidth="800"
 			 Background="White">
 	<Grid>
-		
+		<Grid.RowDefinitions>
+			<RowDefinition Height="*"/>
+			<RowDefinition Height="Auto"/>
+		</Grid.RowDefinitions>
+		<Grid.Resources>
+			<Style TargetType="Button">
+				<Setter Property="Padding" Value="2"/>
+				<Setter Property="Margin" Value="2"/>
+			</Style>
+		</Grid.Resources>
+
 		<FrameworkElement Visibility="Hidden" x:Name="ProxyElement" DataContext="{Binding}"/>
 		
 		<DataGrid IsReadOnly="{Binding ReadOnly}" ItemsSource="{Binding Employees}" AutoGenerateColumns="False">
 			<DataGrid.Columns>
 				<DataGridTextColumn IsReadOnly="True" Header="ID" Binding="{Binding Id}"/>
-				<DataGridTextColumn Header="Full Name" Binding="{Binding FullName}"/>
-				<DataGridComboBoxColumn Header="Subdivision" ItemsSource="{Binding DataContext.Subdivision, Source={x:Reference ProxyElement}}" SelectedItemBinding="{Binding Subdivision}"/>
-				<DataGridComboBoxColumn Header="Position" ItemsSource="{Binding DataContext.EmployeePosition, Source={x:Reference ProxyElement}}" SelectedItemBinding="{Binding Position}"/>
-				<DataGridComboBoxColumn Header="Active" ItemsSource="{Binding DataContext.ActiveStatus, Source={x:Reference ProxyElement}}" SelectedItemBinding="{Binding ActiveStatus}"/>
-				<DataGridComboBoxColumn Header="HR Partner" ItemsSource="{Binding DataContext.HRPeople, Source={x:Reference ProxyElement}}" SelectedItemBinding="{Binding PeoplePartner}"/>
+				<DataGridTextColumn Header="Full Name" Binding="{Binding FullName, ValidatesOnExceptions=True}"/>
+				<DataGridComboBoxColumn Header="Subdivision" ItemsSource="{Binding DataContext.Subdivision, Source={x:Reference ProxyElement}}" SelectedItemBinding="{Binding Subdivision, ValidatesOnExceptions=True}"/>
+				<DataGridComboBoxColumn Header="Position" ItemsSource="{Binding DataContext.EmployeePosition, Source={x:Reference ProxyElement}}" SelectedItemBinding="{Binding Position, ValidatesOnExceptions=True}"/>
+				<DataGridComboBoxColumn Header="Active" ItemsSource="{Binding DataContext.ActiveStatus, Source={x:Reference ProxyElement}}" SelectedItemBinding="{Binding ActiveStatus, ValidatesOnExceptions=True}"/>
+				<DataGridComboBoxColumn Header="HR Partner" ItemsSource="{Binding DataContext.HRPeople, Source={x:Reference ProxyElement}}" SelectedItemBinding="{Binding PeoplePartner, ValidatesOnExceptions=True}"/>
 				<DataGridTextColumn IsReadOnly="True" Header="Availible Days Off" Binding="{Binding AvailibleDaysOff}"/>
 			</DataGrid.Columns>
 
@@ -46,5 +56,9 @@
 				</DataTemplate>
 			</DataGrid.RowDetailsTemplate>
 		</DataGrid>
+
+		<StackPanel HorizontalAlignment="Right" Grid.Row="1" Orientation="Horizontal">
+			<Button Content="Add Employee" IsEnabled="{Binding CanAddEmployees}" Click="AddEmployeeClick"/>
+		</StackPanel>
 	</Grid>
 </UserControl>
