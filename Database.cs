@@ -14,10 +14,10 @@ enum EmployeePosition
 }
 enum AbsenceReason
 {
-	// Only annual leave affects days off
 	AnnualLeave,
 	SickLeave,
 	MaternityLeave,
+	Other
 }
 enum Subdivision
 {
@@ -80,13 +80,14 @@ class Database : IDisposable
 				absence_reason INTEGER NOT NULL,
 				start_date INTEGER NOT NULL,
 				end_date INTEGER NOT NULL,
+				comment TEXT,
+				status INTEGER NOT NULL,
 				FOREIGN KEY (employee) REFERENCES employees(id)
 			);
 			CREATE TABLE IF NOT EXISTS approval_requests(
 				id INTEGER PRIMARY KEY,
 				approver INTEGER NOT NULL,
 				leave_request INTEGER NOT NULL,
-				status INTEGER NOT NULL,
 				comment TEXT,
 				FOREIGN KEY (approver) REFERENCES employees(id),
 				FOREIGN KEY (leave_request) REFERENCES leave_requests(id)
