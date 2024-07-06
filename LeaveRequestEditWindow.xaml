@@ -36,7 +36,19 @@
 						</DataTemplate>
 					</DataGridTemplateColumn.CellTemplate>
 				</DataGridTemplateColumn>
-				<DataGridTextColumn Header="Comment" Binding="{Binding Comment}"/>
+				<DataGridTextColumn Header="Comment" Binding="{Binding Comment}">
+					<DataGridTextColumn.ElementStyle>
+						<Style TargetType="TextBlock">
+							<Setter Property="TextWrapping" Value="Wrap"/>
+						</Style>
+					</DataGridTextColumn.ElementStyle>
+					<DataGridTextColumn.EditingElementStyle>
+						<Style TargetType="TextBox">
+							<Setter Property="TextWrapping" Value="Wrap"/>
+							<Setter Property="AcceptsReturn" Value="True"/>
+						</Style>
+					</DataGridTextColumn.EditingElementStyle>
+				</DataGridTextColumn>
 			</DataGrid.Columns>
 		</DataGrid>
 
