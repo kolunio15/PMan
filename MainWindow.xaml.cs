@@ -18,7 +18,7 @@ public partial class MainWindow : Window
 
 	void ApprovalRequestsButtonClick(object sender, RoutedEventArgs e)
 	{
-		
+		ContentHost.Child = new ApprovalRequestsView(context);
 	}
 
 	void LeaveRequestsButtonClick(object sender, RoutedEventArgs e)

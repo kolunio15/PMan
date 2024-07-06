@@ -72,7 +72,7 @@ public partial class LeaveRequestsView : UserControl
 			using Database db = new();
 			if (
 				MessageBox.Show(
-					"You are about to cancel leave request. This cannot be reversed.", 
+					"You are about to cancel leave request. This cannot be reversed. Continue?", 
 					"Warning", 
 					MessageBoxButton.OKCancel
 				) is MessageBoxResult.OK

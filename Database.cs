@@ -161,7 +161,12 @@ record LeaveRequest(
 	string? Comment,
 	LeaveStatus Status
 );
-
+record ApprovalRequest(
+	long Id,
+	long ApproverId,
+	string? ApproverComment,
+	LeaveRequest LeaveRequest
+);
 class Database : IDisposable
 {
 	const int initialDaysOff = 30;
@@ -702,6 +707,8 @@ class Database : IDisposable
 			UPDATE leave_requests
 			SET status = @newStatus
 			WHERE id = @requestId;
+			
+			DELETE FROM approval_requests WHERE leave_request = @requestId;
 		""";
 		cmd.Parameters.AddWithValue("@requestId", requestId);
 		cmd.Parameters.AddWithValue("@newStatus", (long)LeaveStatus.Cancelled);
@@ -715,11 +722,124 @@ class Database : IDisposable
 			return false;
 		}
 
+
+
 		transaction.Commit();
 		CalculateDaysOffForEmployee(employeeId);
 		
 		return true;
 	}
+
+	internal List<ApprovalRequest> GetApprovalRequests()
+	{
+		using SQLiteCommand cmd = new(connection);
+		cmd.CommandText =
+		"""
+			SELECT 
+				approval_requests.id,
+				approval_requests.approver,
+				approval_requests.comment,
+				leave_requests.id,
+				leave_requests.employee,
+				leave_requests.absence_reason,
+				leave_requests.start_date,
+				leave_requests.end_date,
+				leave_requests.comment,
+				leave_requests.status
+			FROM approval_requests
+			LEFT JOIN leave_requests
+			ON approval_requests.leave_request = leave_requests.id;
+		""";
+
+		using SQLiteDataReader r = cmd.ExecuteReader();
+		List<ApprovalRequest> list = [];
+		while (r.Read())
+		{
+			list.Add(ReadApprovalRequest(r));
+		}
+		return list;
+	}
+	static ApprovalRequest ReadApprovalRequest(SQLiteDataReader r) => new(
+		Id: r.GetInt64(0),
+		ApproverId: r.GetInt64(1),
+		ApproverComment: r.IsDBNull(2) ? null : r.GetString(2),
+		LeaveRequest: new(
+			Id: r.GetInt64(3),
+			Employee: r.GetInt64(4),
+			AbsenceReason: (AbsenceReason)r.GetInt64(5),
+			StartDate: r.GetDateTime(6),
+			EndDate: r.GetDateTime(7),
+			Comment: r.IsDBNull(8) ? null : r.GetString(8),
+			Status: (LeaveStatus)r.GetInt64(9)
+		)
+	);
+
+	internal bool ApproveLeaveRequest(long employeeApprovingId, long approvalId)
+	{
+		return ApproveRejectLeaveRequest(employeeApprovingId, approvalId, "", LeaveStatus.Approved);
+	}
+	internal bool RejectLeaveRequest(long employeeApprovingId, long approvalId, string comment)
+	{
+		return ApproveRejectLeaveRequest(employeeApprovingId, approvalId, comment, LeaveStatus.Rejected);
+	}
+
+	bool ApproveRejectLeaveRequest(long employeeApprovingId, long approvalId, string comment, LeaveStatus newStatus)
+	{
+		if (newStatus is not LeaveStatus.Approved and not LeaveStatus.Rejected) return false;
+		comment = comment.Trim();
+
+		using SQLiteTransaction transaction = connection.BeginTransaction();
+		using SQLiteCommand cmd = new(connection);
+		cmd.CommandText =
+		"""
+			SELECT 
+				approval_requests.approver,
+				leave_requests.status,
+				leave_requests.id,
+				leave_requests.employee
+			FROM approval_requests
+			LEFT JOIN leave_requests
+			ON approval_requests.leave_request = leave_requests.id
+			WHERE approval_requests.id = @approvalId;
+		""";
+		cmd.Parameters.AddWithValue("@approvalId", approvalId);
+		using SQLiteDataReader r = cmd.ExecuteReader();
+		if (!r.Read()) return false;
+		if (employeeApprovingId != r.GetInt64(0)) return false;
+		LeaveStatus status = (LeaveStatus)r.GetInt64(1);
+		if (status is not LeaveStatus.WaitingForApproval) return false;
+		long leaveRequestId = r.GetInt64(2);
+		long employeeId = r.GetInt64(3);
+		r.Close();
+
+		cmd.CommandText =
+		"""
+			UPDATE leave_requests 
+			SET status = @newStatus
+			WHERE id = @leaveRequestId;
+			
+			UPDATE approval_requests
+			SET comment = @comment
+			WHERE id = @approvalId
+		""";
+		cmd.Parameters.AddWithValue("@newStatus", newStatus);
+		cmd.Parameters.AddWithValue("@leaveRequestId", leaveRequestId);
+		cmd.Parameters.AddWithValue("@comment", comment.Length > 0 ? comment : null);
+
+		try
+		{
+			cmd.ExecuteNonQuery();
+		}
+		catch (Exception e)
+		{
+			Console.WriteLine(e);
+			return false;
+		}
+		transaction.Commit();
+		CalculateDaysOffForEmployee(employeeId);
+		return true;
+	}
+
 	void CalculateDaysOffForEmployee(long employeeId)
 	{
 		// TODO
