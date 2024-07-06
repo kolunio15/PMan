@@ -18,12 +18,12 @@ public partial class MainWindow : Window
 
 	void ApprovalRequestsButtonClick(object sender, RoutedEventArgs e)
 	{
-
+		
 	}
 
 	void LeaveRequestsButtonClick(object sender, RoutedEventArgs e)
 	{
-
+		ContentHost.Child = new LeaveRequestsView(context);
 	}
 
 	void ProjectsButtonClick(object sender, RoutedEventArgs e)

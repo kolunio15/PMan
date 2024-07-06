@@ -1,72 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows.Controls;
 
 namespace PMan;
 using static ChoiceFields;
-
-static class ChoiceFields
-{
-	internal static readonly string[] Subdivision = [
-		"IT Departament",
-		"HR Departament",
-		"Legal Departament",
-	];
-	internal static readonly string[] ActiveStatus = [
-		"Active",
-		"Inactive",
-	];
-	internal static readonly string[] EmployeePosition = [
-		"Employee",
-		"HR Manager",
-		"Project Manager",
-		"Administrator",
-	];
-	internal static string SubdivisionToString(Subdivision s) => Subdivision[(int) s];
-	internal static Subdivision? SubdivisionFromString(string s)
-	{
-		int index = Array.IndexOf(Subdivision, s);
-		return index == -1 ? null : (Subdivision)index;
-	}
-	internal static string ActiveStatusToString(ActiveStatus s) => ActiveStatus[(int)s];
-	internal static ActiveStatus? ActiveStatusFromString(string s)
-	{
-		int index = Array.IndexOf(ActiveStatus, s);
-		return index == -1 ? null : (ActiveStatus)index;
-	}
-	internal static string EmployeePositionToString(EmployeePosition s) => EmployeePosition[(int)s];
-	internal static EmployeePosition? EmployeePositionFromString(string s)
-	{
-		int index = Array.IndexOf(EmployeePosition, s);
-		return index == -1 ? null : (EmployeePosition)index;
-	}
-
-
-	internal static string EmployeeToString(Employee? e) =>
-		e == null ? "None" : $"({e.Id}) {e.FullName}";
-	internal static long? EmployeeFromString(string e)
-	{
-		if (e == "None") return null;
-		int start = e.IndexOf('(');
-		int end = e.IndexOf(')');
-		Debug.Assert(start >= 0 && end > 0);
-
-		return long.Parse(e[(start + 1)..end]);
-	}
-
-	internal static string[] HRPeople(List<Employee> employees) => [
-		"None", 
-		..employees
-		.Where(e => e.Position is PMan.EmployeePosition.HRManager)
-		.Select(EmployeeToString)
-	];
-
-}
-
-
 
 public partial class EmployeesView : UserControl
 {
@@ -201,7 +140,7 @@ public partial class EmployeesView : UserControl
 		bool readOnly = login.Position is not PMan.EmployeePosition.HRManager and not PMan.EmployeePosition.Administrator;
 		DataContext = context = new(
 			readOnly,
-			 login.Position == PMan.EmployeePosition.Employee
+			 login.Position == EmployeePosition.Employee
 				? [database.GetEmployee(login.EmployeeId)]
 				: database.GetEmployees(),
 			this

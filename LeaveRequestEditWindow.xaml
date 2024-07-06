@@ -1,0 +1,47 @@
+﻿<Window x:Class="PMan.LeaveRequestEditWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:PMan"
+        mc:Ignorable="d"
+        Title="Edit Leave Request" Height="450" Width="800">
+    <Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="*"/>
+			<RowDefinition Height="Auto"/>
+		</Grid.RowDefinitions>
+		<Grid.Resources>
+			<Style TargetType="Button">
+				<Setter Property="Padding" Value="2"/>
+				<Setter Property="Margin" Value="2"/>
+			</Style>
+		</Grid.Resources>
+
+		<FrameworkElement Visibility="Hidden" x:Name="ProxyElement" DataContext="{Binding}"/>
+		<DataGrid AutoGenerateColumns="False" ItemsSource="{Binding SingleRow}">
+			<DataGrid.Columns>
+				<DataGridComboBoxColumn Header="Absence Reason" ItemsSource="{Binding DataContext.AbsenceReason, Source={x:Reference ProxyElement}}" SelectedItemBinding="{Binding AbsenceReason}"/>
+				<DataGridTemplateColumn Header="Start Date">
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate>
+							<DatePicker SelectedDate="{Binding StartDate}" BorderThickness="0"/>
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+				<DataGridTemplateColumn Header="End Date">
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate>
+							<DatePicker SelectedDate="{Binding EndDate}" BorderThickness="0"/>
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+				<DataGridTextColumn Header="Comment" Binding="{Binding Comment}"/>
+			</DataGrid.Columns>
+		</DataGrid>
+
+		<StackPanel HorizontalAlignment="Right" Grid.Row="1" Orientation="Horizontal">
+			<Button Content="Save" IsEnabled="{Binding CanSave}" Click="SaveButtonClick"/>
+		</StackPanel>
+	</Grid>
+</Window>

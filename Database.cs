@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 
 namespace PMan;
 
@@ -36,6 +38,109 @@ enum ActiveStatus
 	Active,
 	Inactive
 }
+enum LeaveStatus
+{
+	New,
+	WaitingForApproval,
+	Approved,
+	Rejected,
+	Cancelled
+}
+
+static class ChoiceFields
+{
+	internal static readonly string[] Subdivision = [
+		"IT Departament",
+		"HR Departament",
+		"Legal Departament",
+	];
+	internal static readonly string[] ActiveStatus = [
+		"Active",
+		"Inactive",
+	];
+	internal static readonly string[] EmployeePosition = [
+		"Employee",
+		"HR Manager",
+		"Project Manager",
+		"Administrator",
+	];
+	internal static readonly string[] LeaveStatus = [
+		"New",
+		"Waiting for approval",
+		"Approved",
+		"Rejected",
+		"Cancelled"
+	];
+	internal static readonly string[] AbsenceReason = [
+		"Annual leave",
+		"Sick leave",
+		"Maternity leave",
+		"Other"
+	];
+	internal static readonly string[] ProjectType = [
+		"Internal",
+		"Contract",
+	];
+
+	internal static string SubdivisionToString(Subdivision s) => Subdivision[(int)s];
+	internal static Subdivision? SubdivisionFromString(string s)
+	{
+		int index = Array.IndexOf(Subdivision, s);
+		return index == -1 ? null : (Subdivision)index;
+	}
+	internal static string ActiveStatusToString(ActiveStatus s) => ActiveStatus[(int)s];
+	internal static ActiveStatus? ActiveStatusFromString(string s)
+	{
+		int index = Array.IndexOf(ActiveStatus, s);
+		return index == -1 ? null : (ActiveStatus)index;
+	}
+	internal static string EmployeePositionToString(EmployeePosition s) => EmployeePosition[(int)s];
+	internal static EmployeePosition? EmployeePositionFromString(string s)
+	{
+		int index = Array.IndexOf(EmployeePosition, s);
+		return index == -1 ? null : (EmployeePosition)index;
+	}
+	internal static string LeaveStatusToString(LeaveStatus s) => LeaveStatus[(int)s];
+	internal static LeaveStatus? LeaveStatusFromString(string s)
+	{
+		int index = Array.IndexOf(EmployeePosition, s);
+		return index == -1 ? null : (LeaveStatus)index;
+	}
+
+	internal static string AbsenceReasonToString(AbsenceReason s) => AbsenceReason[(int)s];
+	internal static AbsenceReason? AbsenceReasonFromString(string s)
+	{
+		int index = Array.IndexOf(AbsenceReason, s);
+		return index == -1 ? null : (AbsenceReason)index;
+	}
+	internal static string ProjectTypeToString(ProjectType s) => AbsenceReason[(int)s];
+	internal static ProjectType? ProjectTypeFromString(string s)
+	{
+		int index = Array.IndexOf(ProjectType, s);
+		return index == -1 ? null : (ProjectType)index;
+	}
+
+
+	internal static string EmployeeToString(Employee? e) =>
+		e == null ? "None" : $"({e.Id}) {e.FullName}";
+	internal static long? EmployeeFromString(string e)
+	{
+		if (e == "None") return null;
+		int start = e.IndexOf('(');
+		int end = e.IndexOf(')');
+		Debug.Assert(start >= 0 && end > 0);
+
+		return long.Parse(e[(start + 1)..end]);
+	}
+	internal static string[] HRPeople(List<Employee> employees) => [
+		"None",
+		..employees
+		.Where(e => e.Position is PMan.EmployeePosition.HRManager)
+		.Select(EmployeeToString)
+	];
+
+}
+
 
 record Employee(
 	long Id,
@@ -46,6 +151,15 @@ record Employee(
 	long? PeoplePartnerId,
 	long AvailibleDaysOff,
 	string? PhotoPath
+);
+record LeaveRequest(
+	long Id,
+	long Employee,
+	AbsenceReason AbsenceReason,
+	DateTime StartDate,
+	DateTime EndDate,
+	string? Comment,
+	LeaveStatus Status
 );
 
 class Database : IDisposable
@@ -351,10 +465,265 @@ class Database : IDisposable
 		);
 	}
 
+	internal List<LeaveRequest> GetLeaveRequests()
+	{
+		using SQLiteCommand cmd = new(connection);
+		cmd.CommandText =
+		"""
+			SELECT * FROM leave_requests;
+		""";
+
+		using SQLiteDataReader r = cmd.ExecuteReader();
+		List<LeaveRequest> list = [];
+		while (r.Read())
+		{
+			list.Add(ReadLeaveRequest(r));
+		}
+		return list;
+	}
+	internal LeaveRequest? GetLeaveRequest(long id)
+	{
+		using SQLiteCommand cmd = new(connection);
+		cmd.CommandText =
+		"""
+			SELECT * FROM leave_requests WHERE id = @id;
+		""";
+		cmd.Parameters.AddWithValue("@id", id);
+
+		using SQLiteDataReader r = cmd.ExecuteReader();
+		
+		if (r.Read())
+		{
+			return ReadLeaveRequest(r);
+		}
+		else
+		{
+			return null;
+		}
+	}
+
+	static LeaveRequest ReadLeaveRequest(SQLiteDataReader r)
+	{
+		return new(
+			Id: r.GetInt64(0),
+			Employee: r.GetInt64(1),
+			AbsenceReason: (AbsenceReason)r.GetInt64(2),
+			StartDate: r.GetDateTime(3),
+			EndDate: r.GetDateTime(4),
+			Comment: r.IsDBNull(5) ? null : r.GetString(5),
+			Status: (LeaveStatus)r.GetInt64(6)
+		);
+	}
+	internal bool AddLeaveRequest(
+		long creatingEmployeeId,
+		AbsenceReason absenceReason,
+		DateTime startDate,
+		DateTime endDate,
+		string comment
+	)
+	{
+		using SQLiteTransaction transaction = connection.BeginTransaction();
+		using SQLiteCommand cmd = new(connection);
+
+		string? finalComment = comment.Trim();
+		finalComment = finalComment.Length > 0 ? finalComment : null;
+
+		cmd.CommandText =
+		"""
+			INSERT INTO leave_requests(
+				employee,
+				absence_reason,
+				start_date,
+				end_date,
+				comment,
+				status
+			) VALUES (
+				@creatingEmployeeId,
+				@absenceReason,
+				@startDate,
+				@endDate,
+				@comment,
+				@status
+			)
+		""";
+		cmd.Parameters.AddWithValue("@creatingEmployeeId", creatingEmployeeId);
+		cmd.Parameters.AddWithValue("@absenceReason", (long)absenceReason);
+		cmd.Parameters.AddWithValue("@startDate", startDate);
+		cmd.Parameters.AddWithValue("@endDate", endDate);
+		cmd.Parameters.AddWithValue("@comment", finalComment);
+		cmd.Parameters.AddWithValue("@status", (long)LeaveStatus.New);
+		try
+		{
+			cmd.ExecuteNonQuery();
+		}
+		catch (Exception exception)
+		{
+			Console.WriteLine(exception);
+			return false;
+		}
+		transaction.Commit();
+		return true;
+	}
 
 	
 
+	internal bool UpdateLeaveRequest(
+		long requestId,
+		AbsenceReason absenceReason,
+		DateTime startDate,
+		DateTime endDate,
+		string comment
+	)
+	{
+		using SQLiteTransaction transaction = connection.BeginTransaction();
+		using SQLiteCommand cmd = new(connection);
 
+
+		string? finalComment = comment.Trim();
+		finalComment = finalComment.Length > 0 ? finalComment : null;
+
+
+		cmd.CommandText =
+		"""
+			UPDATE leave_requests
+			SET
+				absence_reason = @absenceReason,
+				start_date = @startDate,
+				end_date = @endDate,
+				comment = @comment
+			WHERE 
+				id = @requestId
+		""";
+		cmd.Parameters.AddWithValue("@requestId", requestId);
+		cmd.Parameters.AddWithValue("@absenceReason", absenceReason);
+		cmd.Parameters.AddWithValue("@startDate", startDate);
+		cmd.Parameters.AddWithValue("@endDate", endDate);
+		cmd.Parameters.AddWithValue("@comment", finalComment);
+		try
+		{
+			cmd.ExecuteNonQuery();
+		}
+		catch (Exception exception)
+		{
+			Console.WriteLine(exception);
+			return false;
+		}
+		transaction.Commit();
+		return true;
+	}
+
+	
+
+	internal bool SubmitLeaveRequest(long requestId)
+	{
+		using SQLiteTransaction transaction = connection.BeginTransaction();
+		using SQLiteCommand cmd = new(connection);
+
+		cmd.CommandText =
+		"""
+			SELECT 
+				leave_requests.employee, leave_requests.status, employees.people_partner
+			FROM leave_requests 
+			LEFT JOIN employees
+			ON leave_requests.employee = employees.id
+			WHERE leave_requests.id = @requestId;
+		""";
+		cmd.Parameters.AddWithValue("@requestId", requestId);
+		using SQLiteDataReader r = cmd.ExecuteReader();
+		if (!r.Read()) return false;
+		long employeeId = r.GetInt64(0);
+		LeaveStatus status = (LeaveStatus)r.GetInt64(1);
+		long? peoplePartner = r.IsDBNull(2) ? null : r.GetInt64(2);
+		r.Close();
+
+
+		if (status is not LeaveStatus.New) return false;
+		if (peoplePartner == null) return false;
+
+		cmd.CommandText =
+		"""
+			INSERT INTO approval_requests(
+				approver,
+				leave_request,
+				comment
+			) VALUES (
+				@peoplePartner,
+				@requestId,
+				NULL
+			);
+			UPDATE leave_requests
+			SET status = @newStatus
+			WHERE id = @requestId;
+		""";
+		cmd.Parameters.AddWithValue("@peoplePartner", peoplePartner.Value);
+		cmd.Parameters.AddWithValue("@requestId", requestId);
+		cmd.Parameters.AddWithValue("@newStatus", (long)LeaveStatus.WaitingForApproval);
+		try
+		{
+			cmd.ExecuteNonQuery();
+		}
+		catch (Exception e)
+		{
+			Console.WriteLine(e);
+			return false;
+		}
+
+		transaction.Commit();
+		return true;
+	}
+
+
+	internal bool CancelLeaveRequest(long cancelingUserId, long requestId)
+	{
+		using SQLiteTransaction transaction = connection.BeginTransaction();
+		using SQLiteCommand cmd = new(connection);
+
+		cmd.CommandText =
+		"""
+			SELECT 
+				leave_requests.employee, leave_requests.status
+			FROM leave_requests 
+			LEFT JOIN employees
+			ON leave_requests.employee = employees.id
+			WHERE leave_requests.id = @requestId;
+		""";
+		cmd.Parameters.AddWithValue("@requestId", requestId);
+		using SQLiteDataReader r = cmd.ExecuteReader();
+		if (!r.Read()) return false;
+		long employeeId = r.GetInt64(0);
+		LeaveStatus status = (LeaveStatus)r.GetInt64(1);
+		r.Close();
+
+		if (employeeId != cancelingUserId) return false;
+		if (status is LeaveStatus.Cancelled or LeaveStatus.Rejected) return false;
+
+		cmd.CommandText =
+		"""
+			UPDATE leave_requests
+			SET status = @newStatus
+			WHERE id = @requestId;
+		""";
+		cmd.Parameters.AddWithValue("@requestId", requestId);
+		cmd.Parameters.AddWithValue("@newStatus", (long)LeaveStatus.Cancelled);
+		try
+		{
+			cmd.ExecuteNonQuery();
+		}
+		catch (Exception e)
+		{
+			Console.WriteLine(e);
+			return false;
+		}
+
+		transaction.Commit();
+		CalculateDaysOffForEmployee(employeeId);
+		
+		return true;
+	}
+	void CalculateDaysOffForEmployee(long employeeId)
+	{
+		// TODO
+	}
 
 	public void Dispose()
 	{

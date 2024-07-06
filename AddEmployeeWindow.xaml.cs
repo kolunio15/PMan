@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.ComponentModel;
+﻿using System.Collections.Generic;
 using System.Windows;
 namespace PMan;
 using static ChoiceFields;
@@ -9,7 +6,7 @@ public partial class AddEmployeeWindow : Window
 {
     public class Row(bool CanAddAdmin) 
     {
-        string fullName = "Anna Nowakowska";
+        string fullName = "";
         public string FullName { get => fullName; set => fullName = Database.ValidFullName(value) ?? throw new(); }
         public string Subdivision { get; set; } = ChoiceFields.Subdivision[0];
         string position = ChoiceFields.EmployeePosition[0];
@@ -59,7 +56,7 @@ public partial class AddEmployeeWindow : Window
         }
         else
         {
-            MessageBox.Show("Failed to add employee.");
+            MessageBox.Show("Failed to add an employee.");
         }
 	}
 }
