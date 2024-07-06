@@ -113,7 +113,7 @@ static class ChoiceFields
 		int index = Array.IndexOf(AbsenceReason, s);
 		return index == -1 ? null : (AbsenceReason)index;
 	}
-	internal static string ProjectTypeToString(ProjectType s) => AbsenceReason[(int)s];
+	internal static string ProjectTypeToString(ProjectType s) => ProjectType[(int)s];
 	internal static ProjectType? ProjectTypeFromString(string s)
 	{
 		int index = Array.IndexOf(ProjectType, s);
@@ -167,6 +167,16 @@ record ApprovalRequest(
 	string? ApproverComment,
 	LeaveRequest LeaveRequest
 );
+record Project(
+	long Id,
+	ProjectType ProjectType,
+	DateTime StartDate,
+	DateTime? EndDate,
+	long ProjectManagerId,
+	string? Comment,
+	ActiveStatus Status
+);
+
 class Database : IDisposable
 {
 	const int initialDaysOff = 30;
@@ -213,7 +223,7 @@ class Database : IDisposable
 			);
 			CREATE TABLE IF NOT EXISTS projects(
 				id INTEGER PRIMARY KEY,
-				project_Type INTEGER NOT NULL,
+				project_type INTEGER NOT NULL,
 				start_date INTEGER NOT NULL,
 				end_date INTEGER,
 				project_manager INTEGER NOT NULL,
@@ -839,6 +849,203 @@ class Database : IDisposable
 		CalculateDaysOffForEmployee(employeeId);
 		return true;
 	}
+
+	internal List<Project> GetProjects()
+	{
+		using SQLiteCommand cmd = new(connection);
+		cmd.CommandText =
+		"""
+			SELECT * FROM projects
+		""";
+		using SQLiteDataReader r = cmd.ExecuteReader();
+
+		List<Project> projects = [];
+		while (r.Read())
+		{
+			projects.Add(ReadProject(r));
+		}
+		return projects;
+	}
+	internal Project? GetProject(long projectId)
+	{
+		using SQLiteCommand cmd = new(connection);
+		cmd.CommandText =
+		"""
+			SELECT * FROM projects WHERE id = @projectId
+		""";
+		cmd.Parameters.AddWithValue("@projectId", projectId);
+		using SQLiteDataReader r = cmd.ExecuteReader();
+
+		List<Project> projects = [];
+		if (r.Read())
+		{
+			return ReadProject(r);
+		}
+		else
+		{
+			return null;
+		}
+	}
+
+	static Project ReadProject(SQLiteDataReader r) => new(
+		Id: r.GetInt64(0),
+		ProjectType: (ProjectType)r.GetInt64(1),
+		StartDate: r.GetDateTime(2),
+		EndDate: r.IsDBNull(3) ? null : r.GetDateTime(3),
+		ProjectManagerId: r.GetInt64(4),
+		Comment: r.IsDBNull(5) ? null : r.GetString(5),
+		Status: (ActiveStatus)r.GetInt64(6)
+	);
+
+	internal List<long> GetProjectMembers(long projectId)
+	{
+		using SQLiteCommand cmd = new(connection);
+		cmd.CommandText =
+		"""
+			SELECT employee_id FROM project_members WHERE project_id = @projectId
+		""";
+		cmd.Parameters.AddWithValue("@projectId", projectId);
+		using SQLiteDataReader r = cmd.ExecuteReader();
+		List<long> members = [];
+		while (r.Read())
+		{
+			members.Add(r.GetInt64(0));
+		}
+		return members;
+	}
+
+	internal bool AddProject(
+		ProjectType projectType,
+		DateTime startDate,
+		DateTime? endDate,
+		long projectManagerId,
+		string comment,
+		ActiveStatus status,
+		long[] members
+	)
+	{
+		using SQLiteTransaction transaction = connection.BeginTransaction();
+		using SQLiteCommand cmd = new(connection);
+
+		cmd.CommandText =
+		"""
+			INSERT INTO projects(
+				project_type,
+				start_date,
+				end_date,
+				project_manager,
+				comment,
+				active_status
+			) VALUES (
+				@projectType,
+				@startDate,
+				@endDate,
+				@projectManagerId,
+				@comment,
+				@status
+			);
+		""";
+		comment = comment.Trim();
+		cmd.Parameters.AddWithValue("@projectType", projectType);
+		cmd.Parameters.AddWithValue("@startDate", startDate);
+		cmd.Parameters.AddWithValue("@endDate", endDate);
+		cmd.Parameters.AddWithValue("@projectManagerId", projectManagerId);
+		cmd.Parameters.AddWithValue("@comment", comment.Length > 0 ? comment : null);
+		cmd.Parameters.AddWithValue("@status", status);
+		try
+		{
+			cmd.ExecuteNonQuery();
+			long projectId = connection.LastInsertRowId;
+			cmd.Parameters.AddWithValue("@projectId", projectId);
+			foreach (long member in members)
+			{
+				cmd.Parameters.AddWithValue("@member", member);
+				cmd.CommandText =
+				"""
+					INSERT INTO project_members(
+						project_id,
+						employee_id
+					) VALUES (
+						@projectId,
+						@member
+					);
+				""";
+				cmd.ExecuteNonQuery();
+			}
+		}
+		catch (Exception e)
+		{
+			Console.WriteLine(e);
+			return false;
+		}
+		transaction.Commit();
+		return true;
+	}
+	internal bool UpdateProject(
+		long projectId,
+		ProjectType projectType,
+		DateTime startDate,
+		DateTime? endDate,
+		long projectManagerId,
+		string comment,
+		ActiveStatus status,
+		long[] members
+	)
+	{
+		using SQLiteTransaction transaction = connection.BeginTransaction();
+		using SQLiteCommand cmd = new(connection);
+
+		cmd.CommandText =
+		"""
+			UPDATE projects SET
+				project_type = @projectType,
+				start_date = @startDate,
+				end_date = @endDate,
+				project_manager = @projectManagerId,
+				comment = @comment,
+				active_status = @status
+			WHERE id = @projectId
+		""";
+		comment = comment.Trim();
+		cmd.Parameters.AddWithValue("@projectId", projectId);
+		cmd.Parameters.AddWithValue("@projectType", projectType);
+		cmd.Parameters.AddWithValue("@startDate", startDate);
+		cmd.Parameters.AddWithValue("@endDate", endDate);
+		cmd.Parameters.AddWithValue("@projectManagerId", projectManagerId);
+		cmd.Parameters.AddWithValue("@comment", comment.Length > 0 ? comment : null);
+		cmd.Parameters.AddWithValue("@status", status);
+		try
+		{
+			cmd.ExecuteNonQuery();
+			cmd.CommandText = "DELETE FROM project_members WHERE project_id = @projectId";
+			cmd.ExecuteNonQuery();
+
+			foreach (long member in members)
+			{
+				cmd.Parameters.AddWithValue("@member", member);
+				cmd.CommandText =
+				"""
+					INSERT INTO project_members(
+						project_id,
+						employee_id
+					) VALUES (
+						@projectId,
+						@member
+					);
+				""";
+				cmd.ExecuteNonQuery();
+			}
+		}
+		catch (Exception e)
+		{
+			Console.WriteLine(e);
+			return false;
+		}
+		transaction.Commit();
+		return true;
+	}
+
+
 
 	void CalculateDaysOffForEmployee(long employeeId)
 	{

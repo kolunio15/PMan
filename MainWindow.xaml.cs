@@ -28,6 +28,6 @@ public partial class MainWindow : Window
 
 	void ProjectsButtonClick(object sender, RoutedEventArgs e)
 	{
-
+		ContentHost.Child = new ProjectsView(context);
 	}
 }
