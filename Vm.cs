@@ -39,6 +39,7 @@ class VmBase : INotifyPropertyChanged, INotifyDataErrorInfo
 		{
 			propertyErrors.Add(property, error);
 		}
+		ErrorsChanged?.Invoke(this, new(property));
 	}
 
 	
