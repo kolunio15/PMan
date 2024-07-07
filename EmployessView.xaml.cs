@@ -1,18 +1,52 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Media.Imaging;
 
 namespace PMan;
 using static ChoiceFields;
 
+public class PathToImageConverter : IValueConverter
+{
+	readonly static public PathToImageConverter Instance = new();
+
+	public object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
+	{
+		if (value is string path)
+		{
+			
+			BitmapImage? image = new();
+			using FileStream stream = File.OpenRead(path);
+
+			image.BeginInit();
+			image.StreamSource = stream;
+			image.CacheOption = BitmapCacheOption.OnLoad;
+			image.EndInit();
+
+			return image;
+		}
+		else
+		{
+			return null;
+		}
+	}
+
+	public object? ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+	{
+		return null;
+	}
+}
+
 public partial class EmployeesView : UserControl
 {
-	static readonly string defaultPhotoPath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "./assets/default.png"));
+	internal static readonly string DefaultPhotoPath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "./assets/default.png"));
 
 
-	internal class Row(LoginContext login, Employee e, Database db)
+	internal class Row(LoginContext login, Employee e, Database db) : VmBase
 	{
 		public bool CanEdit { get; } = 
 			(login.Position is EmployeePosition.Administrator) || 
@@ -24,22 +58,9 @@ public partial class EmployeesView : UserControl
 		public string ActiveStatus { get; } = ActiveStatusToString(e.ActiveStatus);
 		public string PeoplePartner { get; } = EmployeeToString(e.PeoplePartnerId == null ? null : db.GetEmployee(e.PeoplePartnerId.Value));
 		public long AvailibleDaysOff { get; } = e.AvailibleDaysOff;
-		public string PhotoPath { get; } = e.PhotoPath ?? defaultPhotoPath;
-		
-		void UpdateDatabase()
-		{
-			//Employee e = new(
-				//Id,
-				//fullName,
-				//SubdivisionFromString(Subdivision)!.Value,
-				//EmployeePositionFromString(Position)!.Value,
-				//ActiveStatusFromString(ActiveStatus)!.Value,
-				//EmployeeFromString(PeoplePartner),
-				//AvailibleDaysOff,
-				//PhotoPath == view.defaultPhotoPath ? null : PhotoPath
-			//);
-			//view.database.UpdateEmployee(e);
-		}
+		string photoPath = e.PhotoPath ?? DefaultPhotoPath;
+		public string PhotoPath { get => photoPath; set => SetNotify(ref photoPath, value); }
+
 	}
 
 	class Context

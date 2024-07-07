@@ -182,6 +182,9 @@ class Database : IDisposable
 	const int initialDaysOff = 40;
 
 	readonly SQLiteConnection connection;
+
+	static string photoDirectory = Path.Combine(AppContext.BaseDirectory, "./avatars");
+
 	internal Database()
 	{
 		string dbPath = Path.Combine(AppContext.BaseDirectory, "database.sqlite3");
@@ -243,6 +246,15 @@ class Database : IDisposable
 		bool addedAdmin = AddEmployeeInternal(0, "Admin", Subdivision.ITDepartament, EmployeePosition.Administrator, ActiveStatus.Active, null);
 		Console.WriteLine($"Added admin employee: {addedAdmin}");
 
+		try
+		{
+			Directory.CreateDirectory(photoDirectory);
+		}
+		catch (Exception e)
+		{
+			Console.WriteLine($"Failed to create path for storing photos\n {e}");
+		}
+
 	}
 
 
@@ -261,7 +273,8 @@ class Database : IDisposable
 		Subdivision subdivision, 
 		EmployeePosition position, 
 		ActiveStatus active, 
-		long peoplePartnerId
+		long peoplePartnerId,
+		string photoPath
 	) 
 	{
 		using SQLiteTransaction transaction = connection.BeginTransaction();
@@ -306,6 +319,8 @@ class Database : IDisposable
 		try
 		{
 			cmd.ExecuteNonQuery();
+			long employeeId = connection.LastInsertRowId;
+			UpdateEmployeePhoto(employeeId, photoPath);
 		}
 		catch (Exception e)
 		{
@@ -368,6 +383,7 @@ class Database : IDisposable
 		cmd.Parameters.AddWithValue("@activeStatus", (long)active);
 		cmd.Parameters.AddWithValue("@peoplePartnerId", peoplePartnerId);
 		cmd.Parameters.AddWithValue("@initialDaysOff", (long)initialDaysOff);
+		
 
 		try { 
 			cmd.ExecuteNonQuery();
@@ -384,7 +400,8 @@ class Database : IDisposable
 		Subdivision subdivision,
 		EmployeePosition position,
 		ActiveStatus status,
-		long peoplePartnerId
+		long peoplePartnerId,
+		string? photoPath
 	)
 	{
 		using SQLiteTransaction transaction = connection.BeginTransaction();
@@ -419,6 +436,7 @@ class Database : IDisposable
 		try
 		{
 			cmd.ExecuteNonQuery();
+			UpdateEmployeePhoto(employeeId, photoPath);
 		}
 		catch (Exception exception)
 		{
@@ -429,8 +447,40 @@ class Database : IDisposable
 		return true;
 	}
 
+	void UpdateEmployeePhoto(long employeeId, string? sourcePhotoPath)
+	{
+		using SQLiteCommand cmd = new(connection);
 
-	
+		cmd.CommandText = "SELECT photo_path FROM employees WHERE id = @employeeId";
+		cmd.Parameters.AddWithValue("@employeeId", employeeId);
+		string? existingPath = FullPhotoPath(cmd.ExecuteScalar() is string s ? s : null);
+		
+		if (existingPath == sourcePhotoPath)
+		{
+			return;
+		}
+		string? newPath = sourcePhotoPath == null ? null : FullPhotoPath($"{employeeId}");
+
+		if (sourcePhotoPath != null && newPath != null)
+		{
+			if (!File.Exists(newPath))
+			{
+				File.WriteAllBytes(newPath, []);
+			}
+			File.Copy(sourcePhotoPath, newPath, overwrite: true);
+		}
+
+		cmd.CommandText = "UPDATE employees SET photo_path = @photoPath WHERE id = @employeeId";
+		cmd.Parameters.AddWithValue("@photoPath", newPath);
+		cmd.ExecuteNonQuery();
+	}
+
+	static string? FullPhotoPath(string? storedPath)
+	{
+		if (storedPath == null) return null;
+		return Path.GetFullPath(Path.Combine(photoDirectory, storedPath));
+	}
+
 
 	internal EmployeePosition? GetEmployeePosition(long id) 
 	{
@@ -479,9 +529,10 @@ class Database : IDisposable
 			ActiveStatus: (ActiveStatus)r.GetInt64(4),
 			PeoplePartnerId: r.IsDBNull(5) ? null : r.GetInt64(5),
 			AvailibleDaysOff: r.GetInt64(6),
-			PhotoPath: r.IsDBNull(7) ? null : r.GetString(6)
+			PhotoPath: FullPhotoPath(r.IsDBNull(7) ? null : r.GetString(7))
 		);
 	}
+	
 
 	internal List<LeaveRequest> GetLeaveRequests()
 	{

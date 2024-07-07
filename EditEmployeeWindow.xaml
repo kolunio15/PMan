@@ -9,6 +9,7 @@
     <Grid>
 		<Grid.RowDefinitions>
 			<RowDefinition Height="*"/>
+			<RowDefinition Height="100"/>
 			<RowDefinition Height="Auto"/>
 		</Grid.RowDefinitions>
 		<Grid.Resources>
@@ -29,7 +30,20 @@
 			</DataGrid.Columns>
 		</DataGrid>
 
-		<StackPanel HorizontalAlignment="Right" Grid.Row="1" Orientation="Horizontal">
+	
+		<Grid Grid.Row="1">
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="*"/>
+				<ColumnDefinition Width="*"/>
+			</Grid.ColumnDefinitions>
+			<Image Source="{Binding DisplayImage, Converter={x:Static local:PathToImageConverter.Instance}}" />
+			<StackPanel Grid.Column="1" VerticalAlignment="Center">
+				<Button Content="Select" Click="SelectImageButtonClick"/>
+				<Button Content="Remove" IsEnabled="{Binding CanRemoveImage}" Click="RemoveImageButtonClick"/>
+			</StackPanel>
+		</Grid>
+		
+		<StackPanel HorizontalAlignment="Right" Grid.Row="2" Orientation="Horizontal">
 			<Button Content="Save" IsEnabled="{Binding CanSave}" Click="SaveButtonClick"/>
 		</StackPanel>
 

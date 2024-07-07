@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Microsoft.Win32;
+using System.Collections.Generic;
 using System.Windows;
 namespace PMan;
 using static ChoiceFields;
@@ -49,16 +50,24 @@ public partial class EditEmployeeWindow : Window
   
     class Context : VmBase
     {
-        public bool CanSave { get => !SingleRow[0].HasErrors; }
+        string? photoPath;
+        internal string? PhotoPath { get => photoPath; set { photoPath = value; Notify(nameof(CanRemoveImage)); Notify(nameof(DisplayImage)); } }
+
+        public string DisplayImage { get => PhotoPath ?? EmployeesView.DefaultPhotoPath; }
+
+		public bool CanRemoveImage { get => PhotoPath != null; }
+
+		public bool CanSave { get => !SingleRow[0].HasErrors; }
         public string[] Subdivision { get; } = ChoiceFields.Subdivision;
         public string[] ActiveStatus { get; } = ChoiceFields.ActiveStatus;
         public string[] EmployeePosition { get; } = ChoiceFields.EmployeePosition;
         public string[] HRPeople { get; } 
 		public Row[] SingleRow { get; }
 
-        internal Context(Row row, List<Employee> employees)
+        internal Context(Row row, string? photoPath, List<Employee> employees)
         {
-            HRPeople = ChoiceFields.HRPeople(employees);
+            this.photoPath = photoPath;
+			HRPeople = ChoiceFields.HRPeople(employees);
             SingleRow = [row];
             row.ErrorsChanged += (_, _) => Notify(nameof(CanSave));
 		}
@@ -74,17 +83,20 @@ public partial class EditEmployeeWindow : Window
 		
         using Database db = new();
 		Row r;
+        string? imagePath;
         if (employeeId is long id)
         {
 			Employee e = db.GetEmployee(id)!;
             r = new(e.FullName, e.Subdivision, e.Position, e.ActiveStatus, e.PeoplePartnerId, canChangePosition);
+            imagePath = e.PhotoPath;
         }
         else
         {
 			r = new("", Subdivision.ITDepartament, EmployeePosition.Employee, ActiveStatus.Active, null, canChangePosition);
-		}
+            imagePath = null;
+        }
 
-		DataContext = context = new(r, db.GetEmployees());        
+		DataContext = context = new(r, imagePath, db.GetEmployees());        
         InitializeComponent();
     }
 
@@ -96,6 +108,7 @@ public partial class EditEmployeeWindow : Window
         if (context.CanSave)
         {
 			bool ok;
+            string? photoPath = context.PhotoPath;
 			if (employeeId is long id)
 			{
 				ok = db.UpdateEmployee(
@@ -104,7 +117,8 @@ public partial class EditEmployeeWindow : Window
 					SubdivisionFromString(r.Subdivision)!.Value,
 					EmployeePositionFromString(r.Position)!.Value,
 					ActiveStatusFromString(r.ActiveStatus)!.Value,
-					EmployeeFromString(r.PeoplePartner)!.Value
+					EmployeeFromString(r.PeoplePartner)!.Value,
+					photoPath
 				);
 			}
 			else
@@ -114,10 +128,10 @@ public partial class EditEmployeeWindow : Window
 					SubdivisionFromString(r.Subdivision)!.Value,
 					EmployeePositionFromString(r.Position)!.Value,
 					ActiveStatusFromString(r.ActiveStatus)!.Value,
-					EmployeeFromString(r.PeoplePartner)!.Value
+					EmployeeFromString(r.PeoplePartner)!.Value,
+					photoPath
 				);
 			}
-
 
 			if (ok)
 			{
@@ -128,5 +142,24 @@ public partial class EditEmployeeWindow : Window
 				MessageBox.Show("Failed to save employee.");
 			}
 		}
+	}
+
+	void RemoveImageButtonClick(object sender, RoutedEventArgs e)
+	{
+        context.PhotoPath = null;
+	}
+
+	void SelectImageButtonClick(object sender, RoutedEventArgs e)
+	{
+		OpenFileDialog dialog = new()
+		{
+			ValidateNames = true,
+			Filter = "Image files(*.png; *.jpeg)|*.png;*.jpeg",
+            Multiselect = false
+		};
+        if (dialog.ShowDialog() == true)
+        {
+            context.PhotoPath = dialog.FileName;
+        }
 	}
 }
