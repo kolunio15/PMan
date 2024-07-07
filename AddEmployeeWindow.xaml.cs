@@ -7,7 +7,15 @@ public partial class AddEmployeeWindow : Window
     public class Row(bool CanAddAdmin) 
     {
         string fullName = "";
-        public string FullName { get => fullName; set => fullName = Database.ValidFullName(value) ?? throw new(); }
+        public string FullName
+        {
+            get => fullName;
+            set
+            {
+                fullName = value;
+                if (Database.ValidFullName(value) == null) throw new();
+            }
+        }
         public string Subdivision { get; set; } = ChoiceFields.Subdivision[0];
         string position = ChoiceFields.EmployeePosition[0];
 		public string Position { 

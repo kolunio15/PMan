@@ -21,7 +21,7 @@
 		<FrameworkElement Visibility="Hidden" x:Name="ProxyElement" DataContext="{Binding}"/>
 		<DataGrid AutoGenerateColumns="False" ItemsSource="{Binding SingleRow}">
 			<DataGrid.Columns>
-				<DataGridTextColumn Header="Full Name" Binding="{Binding FullName, ValidatesOnExceptions=True}"/>
+				<DataGridTextColumn Header="Full Name" Binding="{Binding FullName, ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}"/>
 				<DataGridComboBoxColumn Header="Subdivision" ItemsSource="{Binding DataContext.Subdivision, Source={x:Reference ProxyElement}}" SelectedItemBinding="{Binding Subdivision}"/>
 				<DataGridComboBoxColumn Header="Position" ItemsSource="{Binding DataContext.EmployeePosition, Source={x:Reference ProxyElement}}" SelectedItemBinding="{Binding Position, ValidatesOnExceptions=True}"/>
 				<DataGridComboBoxColumn Header="Active" ItemsSource="{Binding DataContext.ActiveStatus, Source={x:Reference ProxyElement}}" SelectedItemBinding="{Binding ActiveStatus}"/>

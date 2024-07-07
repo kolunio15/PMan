@@ -199,7 +199,7 @@ class Database : IDisposable
 				position INTEGER NOT NULL,
 				active_status INTEGER NOT NULL,
 				people_partner INTEGER,
-				availible_days_off INTEGRER NOT NULL,
+				available_days_off INTEGRER NOT NULL,
 				photo_path TEXT,
 				FOREIGN KEY(people_partner) REFERENCES employees(id)
 			);
@@ -284,7 +284,7 @@ class Database : IDisposable
 				position,
 				active_status,
 				people_partner,
-				availible_days_off,
+				available_days_off,
 				photo_path
 			) VALUES (
 				@fullName, 
@@ -348,7 +348,7 @@ class Database : IDisposable
 				position,
 				active_status,
 				people_partner,
-				availible_days_off,
+				available_days_off,
 				photo_path
 			) VALUES (
 				@id, 
@@ -372,7 +372,7 @@ class Database : IDisposable
 		try { 
 			cmd.ExecuteNonQuery();
 		} catch (Exception e) {
-			Console.WriteLine(e);
+			//Console.WriteLine(e);
 			return false;
 		}
 		transaction.Commit();
@@ -725,6 +725,7 @@ class Database : IDisposable
 		try
 		{
 			cmd.ExecuteNonQuery();
+			CalculateDaysOffForEmployee(employeeId);
 		}
 		catch (Exception e)
 		{
@@ -735,7 +736,7 @@ class Database : IDisposable
 
 
 		transaction.Commit();
-		CalculateDaysOffForEmployee(employeeId);
+		
 		
 		return true;
 	}
@@ -839,6 +840,7 @@ class Database : IDisposable
 		try
 		{
 			cmd.ExecuteNonQuery();
+			CalculateDaysOffForEmployee(employeeId);
 		}
 		catch (Exception e)
 		{
@@ -846,7 +848,7 @@ class Database : IDisposable
 			return false;
 		}
 		transaction.Commit();
-		CalculateDaysOffForEmployee(employeeId);
+	
 		return true;
 	}
 
@@ -1049,7 +1051,33 @@ class Database : IDisposable
 
 	void CalculateDaysOffForEmployee(long employeeId)
 	{
-		// TODO
+		using SQLiteCommand cmd = new(connection);
+		cmd.CommandText =
+		"""
+			SELECT leave_requests.start_date, leave_requests.end_date FROM leave_requests
+			WHERE leave_requests.employee = @employeeId AND leave_requests.status = @approvedStatus
+		""";
+		cmd.Parameters.AddWithValue("@employeeId", employeeId);
+		cmd.Parameters.AddWithValue("@approvedStatus", LeaveStatus.Approved);
+
+		long daysOffRemaining = initialDaysOff;
+
+		using SQLiteDataReader r = cmd.ExecuteReader();
+		while (r.Read())
+		{
+			DateTime startDate = r.GetDateTime(0);
+			DateTime endDate = r.GetDateTime(1);
+
+			TimeSpan duration = endDate - startDate;
+			long daysOutOffOffice = (long)double.Ceiling(duration.TotalDays);
+
+			daysOffRemaining -= daysOutOffOffice;
+		}
+		if (daysOffRemaining < 0) throw new("No days remaining");
+		r.Close();
+		cmd.Parameters.AddWithValue("@daysOff", daysOffRemaining);
+		cmd.CommandText = "UPDATE employees SET available_days_off = @daysOff WHERE id = @employeeId";
+		cmd.ExecuteNonQuery();
 	}
 
 	public void Dispose()

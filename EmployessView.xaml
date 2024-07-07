@@ -29,7 +29,7 @@
 				<DataGridComboBoxColumn Header="Position" ItemsSource="{Binding DataContext.EmployeePosition, Source={x:Reference ProxyElement}}" SelectedItemBinding="{Binding Position, ValidatesOnExceptions=True}"/>
 				<DataGridComboBoxColumn Header="Active" ItemsSource="{Binding DataContext.ActiveStatus, Source={x:Reference ProxyElement}}" SelectedItemBinding="{Binding ActiveStatus, ValidatesOnExceptions=True}"/>
 				<DataGridComboBoxColumn Header="HR Partner" ItemsSource="{Binding DataContext.HRPeople, Source={x:Reference ProxyElement}}" SelectedItemBinding="{Binding PeoplePartner, ValidatesOnExceptions=True}"/>
-				<DataGridTextColumn IsReadOnly="True" Header="Availible Days Off" Binding="{Binding AvailibleDaysOff}"/>
+				<DataGridTextColumn IsReadOnly="True" Header="Available days off" Binding="{Binding AvailibleDaysOff}"/>
 			</DataGrid.Columns>
 
 			<DataGrid.RowDetailsTemplate>

@@ -75,7 +75,7 @@ public partial class ApprovalRequestsView : UserControl
 				using Database db = new();
 				if (!db.ApproveLeaveRequest(login.EmployeeId, r.ApprovalRequestId))
 				{
-					MessageBox.Show("Failed to approve the request.");
+					MessageBox.Show("Failed to approve the request. Check if there enough available days off.");
 				}
 				UpdateContext();
 			}

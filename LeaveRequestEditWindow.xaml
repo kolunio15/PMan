@@ -21,22 +21,22 @@
 		<FrameworkElement Visibility="Hidden" x:Name="ProxyElement" DataContext="{Binding}"/>
 		<DataGrid AutoGenerateColumns="False" ItemsSource="{Binding SingleRow}">
 			<DataGrid.Columns>
-				<DataGridComboBoxColumn Header="Absence Reason" ItemsSource="{Binding DataContext.AbsenceReason, Source={x:Reference ProxyElement}}" SelectedItemBinding="{Binding AbsenceReason}"/>
+				<DataGridComboBoxColumn Header="Absence Reason" ItemsSource="{Binding DataContext.AbsenceReason, Source={x:Reference ProxyElement}}" SelectedItemBinding="{Binding AbsenceReason, UpdateSourceTrigger=PropertyChanged}"/>
 				<DataGridTemplateColumn Header="Start Date">
 					<DataGridTemplateColumn.CellTemplate>
 						<DataTemplate>
-							<DatePicker SelectedDate="{Binding StartDate}" BorderThickness="0"/>
+							<DatePicker SelectedDate="{Binding StartDate, UpdateSourceTrigger=PropertyChanged}" BorderThickness="0"/>
 						</DataTemplate>
 					</DataGridTemplateColumn.CellTemplate>
 				</DataGridTemplateColumn>
 				<DataGridTemplateColumn Header="End Date">
 					<DataGridTemplateColumn.CellTemplate>
 						<DataTemplate>
-							<DatePicker SelectedDate="{Binding EndDate}" BorderThickness="0"/>
+							<DatePicker SelectedDate="{Binding EndDate, UpdateSourceTrigger=PropertyChanged}" BorderThickness="0"/>
 						</DataTemplate>
 					</DataGridTemplateColumn.CellTemplate>
 				</DataGridTemplateColumn>
-				<DataGridTextColumn Header="Comment" Binding="{Binding Comment}">
+				<DataGridTextColumn Header="Comment" Binding="{Binding Comment, UpdateSourceTrigger=PropertyChanged}">
 					<DataGridTextColumn.ElementStyle>
 						<Style TargetType="TextBlock">
 							<Setter Property="TextWrapping" Value="Wrap"/>
