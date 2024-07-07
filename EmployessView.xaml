@@ -20,12 +20,16 @@
 		</Grid.Resources>
 
 		<FrameworkElement Visibility="Hidden" x:Name="ProxyElement" DataContext="{Binding}"/>
-		<StackPanel>
+		<Grid>
+			<Grid.RowDefinitions>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="*"/>
+			</Grid.RowDefinitions>
 			<StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
 				<TextBlock Margin="2,2" Text="Search by name:"/>
 				<TextBox   Margin="2,2" Width="200" Text="{Binding NameSearch, UpdateSourceTrigger=PropertyChanged}"/>
 			</StackPanel>
-			<DataGrid IsReadOnly="True" SelectedItem="{Binding SelectedRow}" ItemsSource="{Binding Employees}" AutoGenerateColumns="False">
+			<DataGrid Grid.Row="1" IsReadOnly="True" SelectedItem="{Binding SelectedRow}" ItemsSource="{Binding Employees}" AutoGenerateColumns="False">
 				<DataGrid.Columns>
 					<DataGridTextColumn IsReadOnly="True" Header="ID"                 Binding="{Binding Id}"/>
 					<DataGridTextColumn Header="Full Name"                            Binding="{Binding FullName, ValidatesOnExceptions=True}"/>
@@ -65,9 +69,7 @@
 					</DataTemplate>
 				</DataGrid.RowDetailsTemplate>
 			</DataGrid>
-		</StackPanel>
-		
-
+		</Grid>
 		<StackPanel HorizontalAlignment="Right" Grid.Row="1" Orientation="Horizontal">
 			<Button Content="Add Employee" IsEnabled="{Binding CanAddEmployees}" Click="AddEmployeeClick"/>
 		</StackPanel>

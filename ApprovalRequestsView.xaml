@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:PMan"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
+             d:DesignHeight="450" d:DesignWidth="800" Background="White">
 	<Grid>
 		<Grid.Resources>
 			<Style TargetType="Button">
@@ -13,29 +13,44 @@
 				<Setter Property="Margin" Value="2"/>
 			</Style>
 		</Grid.Resources>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="*"/>
+			<RowDefinition Height="Auto"/>
+		</Grid.RowDefinitions>
 
 		<FrameworkElement Visibility="Hidden" x:Name="ProxyElement" DataContext="{Binding}"/>
-		<DataGrid AutoGenerateColumns="False" IsReadOnly="True" SelectedItem="{Binding SelectedRow}" ItemsSource="{Binding Rows}">
-			<DataGrid.Columns>
-				<DataGridTextColumn Header="Approval ID" Binding="{Binding ApprovalRequestId}"/>
-				<DataGridTextColumn Header="Leave Request ID" Binding="{Binding LeaveRequestId}"/>
-				<DataGridTextColumn Header="Approver" Binding="{Binding Approver}"/>
-				<DataGridTextColumn Header="Employee" Binding="{Binding Employee}"/>
-				<DataGridComboBoxColumn Header="Absence Reason" ItemsSource="{Binding DataContext.AbsenceReason, Source={x:Reference ProxyElement}}" SelectedItemBinding="{Binding AbsenceReason}"/>
-				<DataGridTextColumn Header="Start Date" Binding="{Binding StartDate, StringFormat={}{0:yyyy.MM.dd}}"/>
-				<DataGridTextColumn Header="End Date" Binding="{Binding EndDate, StringFormat={}{0:yyyy.MM.dd}}"/>
-				<DataGridComboBoxColumn Header="Status" ItemsSource="{Binding DataContext.LeaveStatus, Source={x:Reference ProxyElement}}" SelectedItemBinding="{Binding Status}"/>
-				<DataGridTextColumn Header="Employee's Comment" Binding="{Binding EmployeeComment}"/>
-				<DataGridTextColumn Header="Approvers's Comment" Binding="{Binding ApproverComment}"/>
-			</DataGrid.Columns>
-			<DataGrid.RowDetailsTemplate>
-				<DataTemplate>
-					<StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-						<Button Content="Reject" IsEnabled="{Binding CanReject}" Click="RejectButtonClick"/>
-						<Button Content="Approve" IsEnabled="{Binding CanApprove}" Click="ApproveButtonClick"/>
-					</StackPanel>
-				</DataTemplate>
-			</DataGrid.RowDetailsTemplate>
-		</DataGrid>
+		<Grid>
+			<Grid.RowDefinitions>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="*"/>
+			</Grid.RowDefinitions>
+
+			<StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
+				<TextBlock Margin="2,2" Text="Search by ID:"/>
+				<TextBox   Margin="2,2" Width="200" Text="{Binding RequestNumberSearch, UpdateSourceTrigger=PropertyChanged}"/>
+			</StackPanel>
+			<DataGrid Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True" SelectedItem="{Binding SelectedRow}" ItemsSource="{Binding Rows}">
+				<DataGrid.Columns>
+					<DataGridTextColumn Header="Approval ID" Binding="{Binding ApprovalRequestId}"/>
+					<DataGridTextColumn Header="Leave Request ID" Binding="{Binding LeaveRequestId}"/>
+					<DataGridTextColumn Header="Approver" Binding="{Binding Approver}"/>
+					<DataGridTextColumn Header="Employee" Binding="{Binding Employee}"/>
+					<DataGridComboBoxColumn Header="Absence Reason" ItemsSource="{Binding DataContext.AbsenceReason, Source={x:Reference ProxyElement}}" SelectedItemBinding="{Binding AbsenceReason}"/>
+					<DataGridTextColumn Header="Start Date" Binding="{Binding StartDate, StringFormat={}{0:yyyy.MM.dd}}"/>
+					<DataGridTextColumn Header="End Date" Binding="{Binding EndDate, StringFormat={}{0:yyyy.MM.dd}}"/>
+					<DataGridComboBoxColumn Header="Status" ItemsSource="{Binding DataContext.LeaveStatus, Source={x:Reference ProxyElement}}" SelectedItemBinding="{Binding Status}"/>
+					<DataGridTextColumn Header="Employee's Comment" Binding="{Binding EmployeeComment}"/>
+					<DataGridTextColumn Header="Approvers's Comment" Binding="{Binding ApproverComment}"/>
+				</DataGrid.Columns>
+				<DataGrid.RowDetailsTemplate>
+					<DataTemplate>
+						<StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+							<Button Content="Reject" IsEnabled="{Binding CanReject}" Click="RejectButtonClick"/>
+							<Button Content="Approve" IsEnabled="{Binding CanApprove}" Click="ApproveButtonClick"/>
+						</StackPanel>
+					</DataTemplate>
+				</DataGrid.RowDetailsTemplate>
+			</DataGrid>
+		</Grid>
 	</Grid>
 </UserControl>
