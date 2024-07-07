@@ -4,7 +4,7 @@ Built using .NET 8, Windows Presentation Foundation and SQLite 3.
 
 ## Usage
 Compile directly with `dotnet build` command or through the Visual Studio solution.
-You can also use `dotnet run` build and launch the app.
+You can also use `dotnet run` to build and launch the app.
 
 Application uses `database.sqlite3` file located in the same folder as executable for storage.
 Project includes pre-existing database file with sample data.
