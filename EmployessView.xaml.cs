@@ -153,7 +153,7 @@ public partial class EmployeesView : UserControl
 	{
 		if (context.CanAddEmployees)
 		{
-			AddEmployeeWindow window = new(login);
+			EditEmployeeWindow window = new(login);
 			window.ShowDialog();
 			UpdateContext();
 		}

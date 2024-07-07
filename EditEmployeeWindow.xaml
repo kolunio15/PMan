@@ -1,4 +1,4 @@
-﻿<Window x:Class="PMan.AddEmployeeWindow"
+﻿<Window x:Class="PMan.EditEmployeeWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -21,11 +21,11 @@
 		<FrameworkElement Visibility="Hidden" x:Name="ProxyElement" DataContext="{Binding}"/>
 		<DataGrid AutoGenerateColumns="False" ItemsSource="{Binding SingleRow}">
 			<DataGrid.Columns>
-				<DataGridTextColumn Header="Full Name" Binding="{Binding FullName, ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}"/>
-				<DataGridComboBoxColumn Header="Subdivision" ItemsSource="{Binding DataContext.Subdivision, Source={x:Reference ProxyElement}}" SelectedItemBinding="{Binding Subdivision}"/>
-				<DataGridComboBoxColumn Header="Position" ItemsSource="{Binding DataContext.EmployeePosition, Source={x:Reference ProxyElement}}" SelectedItemBinding="{Binding Position, ValidatesOnExceptions=True}"/>
-				<DataGridComboBoxColumn Header="Active" ItemsSource="{Binding DataContext.ActiveStatus, Source={x:Reference ProxyElement}}" SelectedItemBinding="{Binding ActiveStatus}"/>
-				<DataGridComboBoxColumn Header="HR Partner" ItemsSource="{Binding DataContext.HRPeople, Source={x:Reference ProxyElement}}" SelectedItemBinding="{Binding PeoplePartner}"/>
+				<DataGridTextColumn Header="Full Name" Binding="{Binding FullName, UpdateSourceTrigger=PropertyChanged}"/>
+				<DataGridComboBoxColumn Header="Subdivision" ItemsSource="{Binding DataContext.Subdivision, Source={x:Reference ProxyElement}}" SelectedItemBinding="{Binding Subdivision, UpdateSourceTrigger=PropertyChanged}"/>
+				<DataGridComboBoxColumn Header="Position" ItemsSource="{Binding DataContext.EmployeePosition, Source={x:Reference ProxyElement}}" SelectedItemBinding="{Binding Position, UpdateSourceTrigger=PropertyChanged}"/>
+				<DataGridComboBoxColumn Header="Active" ItemsSource="{Binding DataContext.ActiveStatus, Source={x:Reference ProxyElement}}" SelectedItemBinding="{Binding ActiveStatus, UpdateSourceTrigger=PropertyChanged}"/>
+				<DataGridComboBoxColumn Header="HR Partner" ItemsSource="{Binding DataContext.HRPeople, Source={x:Reference ProxyElement}}" SelectedItemBinding="{Binding PeoplePartner, UpdateSourceTrigger=PropertyChanged}"/>
 			</DataGrid.Columns>
 		</DataGrid>
 
