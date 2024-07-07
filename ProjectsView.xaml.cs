@@ -21,19 +21,46 @@ public partial class ProjectsView : UserControl
 
 
 	}
-	class Context(LoginContext login, Database db)
+	class Context : VmBase
 	{
-		public bool CanAdd { get; } = login.Position is EmployeePosition.ProjectManager or EmployeePosition.Administrator;
+		public bool CanAdd { get; }  
 		public Row? SelectedRow { get; set; }
 
 
-		
+		public string idSearch = "";
+		public string IdSearch { get => idSearch; set { SetNotify(ref idSearch, value); UpdateRows(); } }
 
-		public Row[] Rows { get; } = [
-			..db.GetProjects()
-			.Where(p => login.Position is EmployeePosition.ProjectManager or EmployeePosition.Administrator
-			|| db.GetProjectMembers(p.Id).Contains(login.EmployeeId)).Select(p => new Row(p, login, db))
-		];
+		Row[] rows;
+		public Row[] Rows { get => rows; set => SetNotify(ref rows, value); }
+
+		LoginContext login;
+
+		internal Context(LoginContext login)
+		{
+			CanAdd = login.Position is EmployeePosition.ProjectManager or EmployeePosition.Administrator;
+			this.login = login;
+			UpdateRows();
+		}
+		void UpdateRows()
+		{
+			using Database db = new();
+			Rows = [
+				..db.GetProjects()
+				.Where(p => 
+					login.Position is EmployeePosition.ProjectManager or EmployeePosition.Administrator
+					|| db.GetProjectMembers(p.Id).Contains(login.EmployeeId)).Select(p => new Row(p, login, db))
+				.Where(p => {
+					if (long.TryParse(IdSearch, out long id))
+					{
+						return p.Id == id;
+					}
+					else
+					{
+						return true;
+					}
+				})
+			];
+		}
 	}
 
 	LoginContext login;
@@ -47,7 +74,7 @@ public partial class ProjectsView : UserControl
 	void UpdateContext()
 	{
 		using Database db = new();
-		DataContext = context = new(login, db);
+		DataContext = context = new(login);
 	}
 
 

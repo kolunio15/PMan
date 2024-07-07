@@ -20,44 +20,55 @@
 		</Grid.Resources>
 
 		<FrameworkElement Visibility="Hidden" x:Name="ProxyElement" DataContext="{Binding}"/>
-		<DataGrid AutoGenerateColumns="False" IsReadOnly="True" SelectedItem="{Binding SelectedRow}" ItemsSource="{Binding Rows}">
-			<DataGrid.Columns>
-				<DataGridTextColumn Header="ID" Binding="{Binding Id}"/>
-				<DataGridTextColumn Header="Project Manager" Binding="{Binding ProjectManager}"/>
-				<DataGridTextColumn Header="Project Type" Binding="{Binding ProjectType}"/>
-				<DataGridTextColumn Header="Start Date" Binding="{Binding StartDate, StringFormat={}{0:yyyy.MM.dd}}"/>
-				<DataGridTextColumn Header="End Date" Binding="{Binding EndDate, StringFormat={}{0:yyyy.MM.dd}}"/>
-				<DataGridTextColumn Header="Comment" Binding="{Binding Comment}"/>
-				<DataGridTextColumn Header="Status" Binding="{Binding Status}"/>
-			</DataGrid.Columns>
-			<DataGrid.RowDetailsTemplate>
-				<DataTemplate>
-					<Grid>
-						<Grid.RowDefinitions>
-							<RowDefinition Height="Auto"/>
-							<RowDefinition Height="*"/>
-							<RowDefinition Height="Auto"/>
-						</Grid.RowDefinitions>
-						<TextBlock Grid.Row="0" Margin="5" Text="Project Members" HorizontalAlignment="Left"/>
-						<ItemsControl Grid.Row="1" Focusable="False" ItemsSource="{Binding ProjectMembers}">
-							<ItemsControl.Template>
-								<ControlTemplate>
-									<ItemsPresenter/>
-								</ControlTemplate>
-							</ItemsControl.Template>
-							<ItemsControl.ItemsPanel>
-								<ItemsPanelTemplate>
-									<StackPanel/>
-								</ItemsPanelTemplate>
-							</ItemsControl.ItemsPanel>
-						</ItemsControl>
-						<StackPanel Grid.Row="2">
-							<Button HorizontalAlignment="Left" Content="Edit" IsEnabled="{Binding CanEdit}" Click="EditButtonClick"/>
-						</StackPanel>
-					</Grid>
-				</DataTemplate>
-			</DataGrid.RowDetailsTemplate>
-		</DataGrid>
+		<Grid>
+			<Grid.RowDefinitions>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="*"/>
+			</Grid.RowDefinitions>
+
+			<StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
+				<TextBlock Margin="2,2" Text="Search by ID:"/>
+				<TextBox   Margin="2,2" Width="200" Text="{Binding IdSearch, UpdateSourceTrigger=PropertyChanged}"/>
+			</StackPanel>
+			<DataGrid Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True" SelectedItem="{Binding SelectedRow}" ItemsSource="{Binding Rows}">
+				<DataGrid.Columns>
+					<DataGridTextColumn Header="ID" Binding="{Binding Id}"/>
+					<DataGridTextColumn Header="Project Manager" Binding="{Binding ProjectManager}"/>
+					<DataGridTextColumn Header="Project Type" Binding="{Binding ProjectType}"/>
+					<DataGridTextColumn Header="Start Date" Binding="{Binding StartDate, StringFormat={}{0:yyyy.MM.dd}}"/>
+					<DataGridTextColumn Header="End Date" Binding="{Binding EndDate, StringFormat={}{0:yyyy.MM.dd}}"/>
+					<DataGridTextColumn Header="Comment" Binding="{Binding Comment}"/>
+					<DataGridTextColumn Header="Status" Binding="{Binding Status}"/>
+				</DataGrid.Columns>
+				<DataGrid.RowDetailsTemplate>
+					<DataTemplate>
+						<Grid>
+							<Grid.RowDefinitions>
+								<RowDefinition Height="Auto"/>
+								<RowDefinition Height="*"/>
+								<RowDefinition Height="Auto"/>
+							</Grid.RowDefinitions>
+							<TextBlock Grid.Row="0" Margin="5" Text="Project Members" HorizontalAlignment="Left"/>
+							<ItemsControl Grid.Row="1" Focusable="False" ItemsSource="{Binding ProjectMembers}">
+								<ItemsControl.Template>
+									<ControlTemplate>
+										<ItemsPresenter/>
+									</ControlTemplate>
+								</ItemsControl.Template>
+								<ItemsControl.ItemsPanel>
+									<ItemsPanelTemplate>
+										<StackPanel/>
+									</ItemsPanelTemplate>
+								</ItemsControl.ItemsPanel>
+							</ItemsControl>
+							<StackPanel Grid.Row="2">
+								<Button HorizontalAlignment="Left" Content="Edit" IsEnabled="{Binding CanEdit}" Click="EditButtonClick"/>
+							</StackPanel>
+						</Grid>
+					</DataTemplate>
+				</DataGrid.RowDetailsTemplate>
+			</DataGrid>
+		</Grid>
 		<StackPanel HorizontalAlignment="Right" Grid.Row="1" Orientation="Horizontal">
 			<Button Content="Create" IsEnabled="{Binding CanAdd}" Click="AddButtonClick"/>
 		</StackPanel>
