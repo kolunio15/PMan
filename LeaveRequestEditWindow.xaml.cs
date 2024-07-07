@@ -44,8 +44,6 @@ class ErrorNotify : INotifyDataErrorInfo
 
 public partial class LeaveRequestEditWindow : Window
 {
-	
-
 	class Row : ErrorNotify
 	{
 		string absenceReason;
@@ -59,10 +57,11 @@ public partial class LeaveRequestEditWindow : Window
 		
 		public Row(AbsenceReason absenceReason, DateTime startDate, DateTime endDate, string comment)
 		{
-			AbsenceReason = AbsenceReasonToString(absenceReason);
-			StartDate = startDate;
-			EndDate = endDate;
-			Comment = comment;
+			this.absenceReason = AbsenceReasonToString(absenceReason);
+			this.startDate = startDate;
+			this.endDate = endDate;
+			this.comment = comment;
+			Validate();
 		}
 		void Validate()
 		{
