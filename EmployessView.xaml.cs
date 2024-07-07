@@ -63,26 +63,44 @@ public partial class EmployeesView : UserControl
 
 	}
 
-	class Context
+	class Context : VmBase
     {
 		public string[] Subdivision { get; }
 		public string[] ActiveStatus { get; }
 		public string[] EmployeePosition { get; }
-        public Row[] Employees { get; }
+        Row[] employees;
+		public Row[] Employees { get => employees; set => SetNotify(ref employees, value);  }
 		public Row? SelectedRow { get; set; }
 		public bool CanAddEmployees { get; }
 
+
+
+		string nameSearch = "";
+		public string NameSearch { get => nameSearch; set { 
+		SetNotify(ref nameSearch, value); UpdateRows(); } }
+
+		LoginContext login;
+
 		internal Context(LoginContext login)
 		{
-			using Database db = new();
-			var employees = db.GetEmployees().Where(e => login.EmployeeId == e.Id || login.Position is not PMan.EmployeePosition.Employee);
-
+			this.login = login;
+		
             Subdivision = ChoiceFields.Subdivision;
 			ActiveStatus = ChoiceFields.ActiveStatus;
 			EmployeePosition = ChoiceFields.EmployeePosition;
-			Employees = [..employees.Select(e => new Row(login, e, db))];
 			CanAddEmployees = login.Position is PMan.EmployeePosition.HRManager or PMan.EmployeePosition.Administrator;
+
+			UpdateRows();
 		}
+		void UpdateRows()
+		{
+			using Database db = new();
+			var employees = db.GetEmployees()
+				.Where(e => login.EmployeeId == e.Id || login.Position is not PMan.EmployeePosition.Employee)
+				.Where(e => e.FullName.Contains(nameSearch, StringComparison.InvariantCultureIgnoreCase));
+			Employees = [.. employees.Select(e => new Row(login, e, db))];
+		}
+
 	}
 
 	Context context;
