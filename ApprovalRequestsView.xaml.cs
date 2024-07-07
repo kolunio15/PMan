@@ -25,17 +25,47 @@ public partial class ApprovalRequestsView : UserControl
 		public string Status { get; set; } = LeaveStatusToString(ar.LeaveRequest.Status);
 	}
 
-	class Context(LoginContext login, Database db) : VmBase
+	class Context : VmBase
 	{
 		public string[] AbsenceReason { get; } = ChoiceFields.AbsenceReason;
 		public string[] LeaveStatus { get; } = ChoiceFields.LeaveStatus;
 
 
+		public string requestNumberSearch = "";
+		public string RequestNumberSearch { get => requestNumberSearch; set { SetNotify(ref requestNumberSearch, value); UpdateRows(); } }
+
 		public Row? SelectedRow { get; set; }
 
-		public Row[] Rows { get; } = [.. db.GetApprovalRequests()
-			.Where(lr => login.Position is EmployeePosition.Administrator || lr.ApproverId == login.EmployeeId || lr.LeaveRequest.Employee == login.EmployeeId)
-			.Select(lr => new Row(lr, login, db))];
+		Row[] rows;
+		public Row[] Rows { get => rows; set => SetNotify(ref rows, value); }
+
+		LoginContext login;
+		
+		internal Context(LoginContext login)
+		{
+			this.login = login;
+			UpdateRows();
+		}
+
+		void UpdateRows()
+		{
+			using Database db = new();
+			Rows = [..db.GetApprovalRequests()
+				.Where(ar => login.Position is EmployeePosition.Administrator || ar.ApproverId == login.EmployeeId || ar.LeaveRequest.Employee == login.EmployeeId)
+				.Where(ar => {
+					if (long.TryParse(RequestNumberSearch, out long id))
+					{
+						return ar.Id == id;
+					}
+					else
+					{
+						return true;
+					}
+				})
+				.Select(lr => new Row(lr, login, db))
+			] ;
+		}
+
 	}
 
 	LoginContext login;
@@ -48,8 +78,7 @@ public partial class ApprovalRequestsView : UserControl
 	}
 	void UpdateContext()
 	{
-		using Database db = new();
-		DataContext = context = new Context(login, db);
+		DataContext = context = new Context(login);
 	}
 
 	void RejectButtonClick(object sender, System.Windows.RoutedEventArgs e)
