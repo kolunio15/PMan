@@ -273,8 +273,8 @@ class Database : IDisposable
 		Subdivision subdivision, 
 		EmployeePosition position, 
 		ActiveStatus active, 
-		long peoplePartnerId,
-		string photoPath
+		long? peoplePartnerId,
+		string? photoPath
 	) 
 	{
 		using SQLiteTransaction transaction = connection.BeginTransaction();

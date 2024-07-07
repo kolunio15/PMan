@@ -1,5 +1,6 @@
 ﻿using Microsoft.Win32;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 namespace PMan;
 using static ChoiceFields;
@@ -21,8 +22,9 @@ public partial class EditEmployeeWindow : Window
 
         EmployeePosition originalPosition;
         bool canChangePosition;
-        
-        internal Row(string fullName, Subdivision subdivision, EmployeePosition position, ActiveStatus activeStatus, long? peoplePartner, bool canChangePosition)
+		bool canCreateWithoutPeoplePerson;
+
+		internal Row(string fullName, Subdivision subdivision, EmployeePosition position, ActiveStatus activeStatus, long? peoplePartner, bool canChangePosition, bool canCreateWithoutPeoplePerson)
         {
             using Database db = new();
             this.fullName = fullName;
@@ -33,7 +35,9 @@ public partial class EditEmployeeWindow : Window
 
             this.originalPosition = position;
 			this.canChangePosition = canChangePosition;
-            Validate();
+            this.canCreateWithoutPeoplePerson = canCreateWithoutPeoplePerson;
+
+			Validate();
         }
 		void Validate()
         {
@@ -42,7 +46,7 @@ public partial class EditEmployeeWindow : Window
                 SetError(nameof(FullName), "Name must be present");
             if (!canChangePosition && originalPosition != EmployeePositionFromString(Position))
 				SetError(nameof(Position), "Only admin can change position");
-			if (EmployeeFromString(PeoplePartner) == null)
+			if (!(canCreateWithoutPeoplePerson && EmployeePositionFromString(Position) is EmployeePosition.HRManager) && EmployeeFromString(PeoplePartner) == null)
 				SetError(nameof(PeoplePartner), "People partner must not be null");
 		}
 
@@ -79,20 +83,21 @@ public partial class EditEmployeeWindow : Window
     {
         this.employeeId = employeeId;
      
-        bool canChangePosition = login.Position is EmployeePosition.Administrator && (employeeId == null || employeeId.Value != login.EmployeeId);
-		
         using Database db = new();
+        bool canChangePosition = login.Position is EmployeePosition.Administrator && (employeeId == null || employeeId.Value != login.EmployeeId);
+        bool canCreateWithoutPeoplePerson = employeeId == null && !db.GetEmployees().Where(e => e.Position == EmployeePosition.HRManager).Any(); 
+
 		Row r;
         string? imagePath;
         if (employeeId is long id)
         {
 			Employee e = db.GetEmployee(id)!;
-            r = new(e.FullName, e.Subdivision, e.Position, e.ActiveStatus, e.PeoplePartnerId, canChangePosition);
+            r = new(e.FullName, e.Subdivision, e.Position, e.ActiveStatus, e.PeoplePartnerId, canChangePosition, false);
             imagePath = e.PhotoPath;
         }
         else
         {
-			r = new("", Subdivision.ITDepartament, EmployeePosition.Employee, ActiveStatus.Active, null, canChangePosition);
+			r = new("", Subdivision.ITDepartament, EmployeePosition.Employee, ActiveStatus.Active, null, canChangePosition, canCreateWithoutPeoplePerson);
             imagePath = null;
         }
 
@@ -128,7 +133,7 @@ public partial class EditEmployeeWindow : Window
 					SubdivisionFromString(r.Subdivision)!.Value,
 					EmployeePositionFromString(r.Position)!.Value,
 					ActiveStatusFromString(r.ActiveStatus)!.Value,
-					EmployeeFromString(r.PeoplePartner)!.Value,
+					EmployeeFromString(r.PeoplePartner),
 					photoPath
 				);
 			}
