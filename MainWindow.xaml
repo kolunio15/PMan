@@ -24,6 +24,7 @@
 			</Grid.ColumnDefinitions>
 			<TextBlock Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{Binding LoggedInEmployeeString}"/>
 			<StackPanel Grid.Column="1" HorizontalAlignment="Right" Orientation="Horizontal">
+				<Button Content="Logout" Click="LogoutButtonClick"/>
 				<Button Content="Employees" Click="EmployeesButtonClick"/>
 				<Button Content="Approval Requests" Click="ApprovalRequestsButtonClick"/>
 				<Button Content="Leave Requests" Click="LeaveRequestsButtonClick"/>

@@ -69,9 +69,3 @@ class MainWindowVm : VmBase
 		database.Dispose();
 	}
 }
-
-class EmployeesVm : VmBase 
-{
-	
-}
-

@@ -11,6 +11,12 @@ public partial class MainWindow : Window
         InitializeComponent();
     }
 
+	void LogoutButtonClick(object sender, RoutedEventArgs e)
+	{
+		new LoginWindow().Show();
+		Close();
+	}
+
 	void EmployeesButtonClick(object sender, RoutedEventArgs e)
 	{
 		ContentHost.Child = new EmployeesView(context);
