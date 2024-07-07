@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PMan"
         mc:Ignorable="d"
-        Title="Add Employee" Width="400" Height="400">
+        Title="Edit Employee" Width="1280" Height="720" MinWidth="500" MinHeight="500">
     <Grid>
 		<Grid.RowDefinitions>
 			<RowDefinition Height="*"/>

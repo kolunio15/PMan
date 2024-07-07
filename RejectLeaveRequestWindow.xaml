@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PMan"
         mc:Ignorable="d"
-        Title="RejectLeaveRequestWindow" Height="450" Width="800">
+        Title="Reject Request" Width="1280" Height="720" MinWidth="500" MinHeight="500">
     <Grid>
 		<Grid.RowDefinitions>
 			<RowDefinition Height="Auto"/>
