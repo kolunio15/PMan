@@ -20,15 +20,15 @@
 		</Grid.Resources>
 
 		<FrameworkElement Visibility="Hidden" x:Name="ProxyElement" DataContext="{Binding}"/>
-		
-		<DataGrid IsReadOnly="{Binding ReadOnly}" ItemsSource="{Binding Employees}" AutoGenerateColumns="False">
+
+		<DataGrid IsReadOnly="True" SelectedItem="{Binding SelectedRow}" ItemsSource="{Binding Employees}" AutoGenerateColumns="False">
 			<DataGrid.Columns>
-				<DataGridTextColumn IsReadOnly="True" Header="ID" Binding="{Binding Id}"/>
-				<DataGridTextColumn Header="Full Name" Binding="{Binding FullName, ValidatesOnExceptions=True}"/>
-				<DataGridComboBoxColumn Header="Subdivision" ItemsSource="{Binding DataContext.Subdivision, Source={x:Reference ProxyElement}}" SelectedItemBinding="{Binding Subdivision, ValidatesOnExceptions=True}"/>
-				<DataGridComboBoxColumn Header="Position" ItemsSource="{Binding DataContext.EmployeePosition, Source={x:Reference ProxyElement}}" SelectedItemBinding="{Binding Position, ValidatesOnExceptions=True}"/>
-				<DataGridComboBoxColumn Header="Active" ItemsSource="{Binding DataContext.ActiveStatus, Source={x:Reference ProxyElement}}" SelectedItemBinding="{Binding ActiveStatus, ValidatesOnExceptions=True}"/>
-				<DataGridComboBoxColumn Header="HR Partner" ItemsSource="{Binding DataContext.HRPeople, Source={x:Reference ProxyElement}}" SelectedItemBinding="{Binding PeoplePartner, ValidatesOnExceptions=True}"/>
+				<DataGridTextColumn IsReadOnly="True" Header="ID"                 Binding="{Binding Id}"/>
+				<DataGridTextColumn Header="Full Name"                            Binding="{Binding FullName, ValidatesOnExceptions=True}"/>
+				<DataGridTextColumn Header="Subdivision"                          Binding="{Binding Subdivision}"/>
+				<DataGridTextColumn Header="Position"                             Binding="{Binding Position}"/>
+				<DataGridTextColumn Header="Active"                               Binding="{Binding ActiveStatus}"/>
+				<DataGridTextColumn Header="HR Partner"                           Binding="{Binding PeoplePartner}"/>
 				<DataGridTextColumn IsReadOnly="True" Header="Available days off" Binding="{Binding AvailibleDaysOff}"/>
 			</DataGrid.Columns>
 
@@ -38,6 +38,7 @@
 						<Image DockPanel.Dock="Left" Source="{Binding PhotoPath}" Height="100" Margin="10" />
 						<Grid Margin="0,10">
 							<Grid.RowDefinitions>
+								<RowDefinition Height="Auto"/>
 								<RowDefinition Height="Auto"/>
 								<RowDefinition Height="Auto"/>
 							</Grid.RowDefinitions>
@@ -51,6 +52,10 @@
 
 							<TextBlock Margin="5" Grid.Row="1" Text="Subdivision:" FontWeight="Bold" />
 							<TextBlock Margin="5" Grid.Row="1" Grid.Column="1" Text="{Binding Subdivision}"/>
+
+							<StackPanel Grid.Row="3" Orientation="Horizontal">
+								<Button Content="Edit" IsEnabled="{Binding CanEdit}" Click="EditButtonClick"/>
+							</StackPanel>
 						</Grid>
 					</DockPanel>
 				</DataTemplate>

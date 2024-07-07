@@ -132,7 +132,7 @@ static class ChoiceFields
 
 		return long.Parse(e[(start + 1)..end]);
 	}
-	internal static string[] HRPeople(List<Employee> employees) => [
+	internal static string[] HRPeople(IEnumerable<Employee> employees) => [
 		"None",
 		..employees
 		.Where(e => e.Position is PMan.EmployeePosition.HRManager)
@@ -261,7 +261,7 @@ class Database : IDisposable
 		Subdivision subdivision, 
 		EmployeePosition position, 
 		ActiveStatus active, 
-		long? peoplePartnerId
+		long peoplePartnerId
 	) 
 	{
 		using SQLiteTransaction transaction = connection.BeginTransaction();
@@ -378,13 +378,19 @@ class Database : IDisposable
 		transaction.Commit();
 		return true;
 	}
-	internal bool UpdateEmployee(Employee e)
+	internal bool UpdateEmployee(
+		long employeeId,
+		string fullName,
+		Subdivision subdivision,
+		EmployeePosition position,
+		ActiveStatus status,
+		long peoplePartnerId
+	)
 	{
 		using SQLiteTransaction transaction = connection.BeginTransaction();
 		using SQLiteCommand cmd = new(connection);
 
-		string fullName;
-		if (ValidFullName(e.FullName) is string fn)
+		if (ValidFullName(fullName) is string fn)
 		{
 			fullName = fn;
 		}
@@ -401,18 +407,15 @@ class Database : IDisposable
 				subdivision = @subdivision,
 				position = @position,
 				active_status = @activeStatus,
-				people_partner = @peoplePartnerId,
-				photo_path = @photoPath
+				people_partner = @peoplePartnerId
 			WHERE id = @id;
 		""";
-		cmd.Parameters.AddWithValue("@id", e.Id);
+		cmd.Parameters.AddWithValue("@id", employeeId);
 		cmd.Parameters.AddWithValue("@fullName", fullName);
-		cmd.Parameters.AddWithValue("@subdivision", (long)e.Subdivision);
-		cmd.Parameters.AddWithValue("@position", (long)e.Position);
-		cmd.Parameters.AddWithValue("@activeStatus", (long)e.ActiveStatus);
-		cmd.Parameters.AddWithValue("@peoplePartnerId", e.PeoplePartnerId);
-		cmd.Parameters.AddWithValue("@photoPath", e.PhotoPath);
-
+		cmd.Parameters.AddWithValue("@subdivision", subdivision);
+		cmd.Parameters.AddWithValue("@position", position);
+		cmd.Parameters.AddWithValue("@activeStatus", status);
+		cmd.Parameters.AddWithValue("@peoplePartnerId", peoplePartnerId);
 		try
 		{
 			cmd.ExecuteNonQuery();

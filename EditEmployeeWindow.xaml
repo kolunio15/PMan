@@ -21,11 +21,11 @@
 		<FrameworkElement Visibility="Hidden" x:Name="ProxyElement" DataContext="{Binding}"/>
 		<DataGrid AutoGenerateColumns="False" ItemsSource="{Binding SingleRow}">
 			<DataGrid.Columns>
-				<DataGridTextColumn Header="Full Name" Binding="{Binding FullName, UpdateSourceTrigger=PropertyChanged}"/>
-				<DataGridComboBoxColumn Header="Subdivision" ItemsSource="{Binding DataContext.Subdivision, Source={x:Reference ProxyElement}}" SelectedItemBinding="{Binding Subdivision, UpdateSourceTrigger=PropertyChanged}"/>
-				<DataGridComboBoxColumn Header="Position" ItemsSource="{Binding DataContext.EmployeePosition, Source={x:Reference ProxyElement}}" SelectedItemBinding="{Binding Position, UpdateSourceTrigger=PropertyChanged}"/>
-				<DataGridComboBoxColumn Header="Active" ItemsSource="{Binding DataContext.ActiveStatus, Source={x:Reference ProxyElement}}" SelectedItemBinding="{Binding ActiveStatus, UpdateSourceTrigger=PropertyChanged}"/>
-				<DataGridComboBoxColumn Header="HR Partner" ItemsSource="{Binding DataContext.HRPeople, Source={x:Reference ProxyElement}}" SelectedItemBinding="{Binding PeoplePartner, UpdateSourceTrigger=PropertyChanged}"/>
+				<DataGridTextColumn      Header="Full Name" Binding="{Binding FullName, UpdateSourceTrigger=PropertyChanged}"/>
+				<DataGridComboBoxColumn  Header="Subdivision" ItemsSource="{Binding DataContext.Subdivision, Source={x:Reference ProxyElement}}" SelectedItemBinding="{Binding Subdivision, UpdateSourceTrigger=PropertyChanged}"/>
+				<DataGridComboBoxColumn  Header="Position" ItemsSource="{Binding DataContext.EmployeePosition, Source={x:Reference ProxyElement}}" SelectedItemBinding="{Binding Position, UpdateSourceTrigger=PropertyChanged}"/>
+				<DataGridComboBoxColumn  Header="Active" ItemsSource="{Binding DataContext.ActiveStatus, Source={x:Reference ProxyElement}}" SelectedItemBinding="{Binding ActiveStatus, UpdateSourceTrigger=PropertyChanged}"/>
+				<DataGridComboBoxColumn  Header="HR Partner" ItemsSource="{Binding DataContext.HRPeople, Source={x:Reference ProxyElement}}" SelectedItemBinding="{Binding PeoplePartner, UpdateSourceTrigger=PropertyChanged}"/>
 			</DataGrid.Columns>
 		</DataGrid>
 
