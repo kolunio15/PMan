@@ -179,7 +179,7 @@ record Project(
 
 class Database : IDisposable
 {
-	const int initialDaysOff = 30;
+	const int initialDaysOff = 40;
 
 	readonly SQLiteConnection connection;
 	internal Database()
