@@ -12,33 +12,41 @@ To use new database file remove `database.sqlite3` from output directory.
 
 ## Screenshots
 #### Employee list
-![Employee list](employees.png)
+![Employee list](employees.png)  
+
 Ordinary employees can only see their own data.
 #### Employee editor
-![Employee editor](employee_edit.png)
+![Employee editor](employee_edit.png)  
+
 HR Managers and Administrators can add and edit employee data.
 Only Administrator can change employee's position to prevent privilege elevation.
 #### Leave request list
-![Leave request list](leave_requests.png)
+![Leave request list](leave_requests.png)  
+
 Every employee aside from administrators can manage only their own requests.
 Requests may be created, edited, submitted and canceled.
 #### Leave request editor
-![Leave request editor](leave_request_edit.png)
+![Leave request editor](leave_request_edit.png)  
+
 Submitter can select from range of absence reasons and leave a comment further explaining the circumstances.
 #### Approval request list
-![Approval request list](approval_requests.png)
+![Approval request list](approval_requests.png)  
+
 Every HR manager either accepts or rejects leave requests of employees for whom they are HR partner.
 Ordinary employees can only see the requests they have submitted.
 Administrator can see all requests but cannot act upon them.
 #### Leave request rejection
-![Leave request rejection](approval_request_rejection.png)
+![Leave request rejection](approval_request_rejection.png)  
+
 When rejecting a leave request approver can write a comment explaining their reasoning.
 #### Project list
-![Project list](projects.png)
+![Project list](projects.png)  
+
 Project managers and administrators can create and edit projects.
 Ordinary employees can only see the projects which are a part of.
 #### Project editor
-![Project editor](project_edit.png)
+![Project editor](project_edit.png)  
+
 Project managers can set project properties such as start and end date, type, select assigned members 
 and leave a comment describing the project.
 ## Database
@@ -92,4 +100,3 @@ CREATE TABLE project_members(
 ```
 #### Table relations
 ![Database relations](database_relations.png)
-
