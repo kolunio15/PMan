@@ -32,7 +32,7 @@
 			</DataGrid.Columns>
 			<DataGrid.RowDetailsTemplate>
 				<DataTemplate>
-					<StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+					<StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
 						<Button Content="Edit" IsEnabled="{Binding CanEdit}" Click="EditButtonClick"/>
 						<Button Content="Cancel" IsEnabled="{Binding CanCancel}" Click="CancelButtonClick"/>
 						<Button Content="Submit" IsEnabled="{Binding CanSubmit}" Click="SubmitButtonClick"/>

@@ -30,7 +30,7 @@
 			</DataGrid.Columns>
 			<DataGrid.RowDetailsTemplate>
 				<DataTemplate>
-					<StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+					<StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
 						<Button Content="Reject" IsEnabled="{Binding CanReject}" Click="RejectButtonClick"/>
 						<Button Content="Approve" IsEnabled="{Binding CanApprove}" Click="ApproveButtonClick"/>
 					</StackPanel>
