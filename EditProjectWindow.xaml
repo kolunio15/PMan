@@ -25,8 +25,8 @@
 		<FrameworkElement Visibility="Hidden" x:Name="ProxyElement" DataContext="{Binding}"/>
 		<DataGrid AutoGenerateColumns="False" SelectedItem="{Binding SelectedRow}" ItemsSource="{Binding Rows}">
 			<DataGrid.Columns>
-				<DataGridComboBoxColumn Header="Project Manager" SelectedItemBinding="{Binding ProjectManager}" ItemsSource="{Binding DataContext.ProjectManagers, Source={x:Reference ProxyElement}}"/>
-				<DataGridComboBoxColumn Header="Project Type" SelectedItemBinding="{Binding ProjectType}" ItemsSource="{Binding DataContext.ProjectType, Source={x:Reference ProxyElement}}"/>
+				<DataGridComboBoxColumn Header="Project Manager" SelectedItemBinding="{Binding ProjectManager, UpdateSourceTrigger=PropertyChanged}" ItemsSource="{Binding DataContext.ProjectManagers, Source={x:Reference ProxyElement}}"/>
+				<DataGridComboBoxColumn Header="Project Type" SelectedItemBinding="{Binding ProjectType, UpdateSourceTrigger=PropertyChanged}" ItemsSource="{Binding DataContext.ProjectType, Source={x:Reference ProxyElement}}"/>
 				<DataGridTemplateColumn Header="Start Date">
 					<DataGridTemplateColumn.CellTemplate>
 						<DataTemplate>
@@ -54,7 +54,7 @@
 						</Style>
 					</DataGridTextColumn.EditingElementStyle>
 				</DataGridTextColumn>
-				<DataGridComboBoxColumn Header="Status" SelectedItemBinding="{Binding Status}" ItemsSource="{Binding DataContext.ActiveStatus, Source={x:Reference ProxyElement}}"/>
+				<DataGridComboBoxColumn Header="Status" SelectedItemBinding="{Binding Status, UpdateSourceTrigger=PropertyChanged}" ItemsSource="{Binding DataContext.ActiveStatus, Source={x:Reference ProxyElement}}"/>
 			</DataGrid.Columns>
 		</DataGrid>
 
